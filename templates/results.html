@@ -1,0 +1,27 @@
+<h2>Results</h2>
+
+<nav>
+    <a href="/">Home</a> |
+    <a href="/admin">Admin</a> |
+    <a href="/employee">Employee</a> |
+    <a href="/awareness">Awareness</a>
+</nav>
+<hr>
+
+<h3>Summary:</h3>
+<ul>
+    <li>Clicked Link: {{ summary['Clicked Link'] }}</li>
+    <li>Reported Email: {{ summary['Reported'] }}</li>
+    <li>Ignored: {{ summary['Ignored'] }}</li>
+</ul>
+
+<h3>All Actions:</h3>
+<table border="1">
+<tr><th>Campaign</th><th>Action</th></tr>
+{% for r in data %}
+<tr>
+    <td>{{ r.campaign }}</td>
+    <td>{{ r.action }}</td>
+</tr>
+{% endfor %}
+</table>

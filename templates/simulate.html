@@ -1,0 +1,52 @@
+<h2>Email Inbox</h2>
+
+<nav>
+    <a href="/">Home</a> |
+    <a href="/employee">Dashboard</a> |
+    <a href="/awareness">Awareness</a>
+</nav>
+<hr>
+
+<div style="border:1px solid #ccc; padding:20px; width:600px;">
+    <p><strong>From:</strong> IT Support &lt;support@company-it.com&gt;</p>
+    <p><strong>To:</strong> You</p>
+    <p><strong>Subject:</strong> Urgent: Password Reset Required</p>
+    <hr>
+
+    <p>Dear Employee,</p>
+
+    <p>
+        We have detected unusual activity on your account.  
+        To secure your account, you must reset your password immediately.
+    </p>
+
+    <p>
+        Please click the link below to reset your password:
+    </p>
+
+    <p style="color:blue; text-decoration:underline;">
+        https://company-security-reset.com
+    </p>
+
+    <p>If you do not reset your password within 24 hours, your account will be locked.</p>
+
+    <p>IT Support Team</p>
+</div>
+
+<br>
+
+<form method="post" action="/report">
+    <input type="hidden" name="campaign" value="{{ campaign.scenario }}">
+
+    <button name="action" value="Clicked Link">
+        Click Link (Reset Password)
+    </button>
+
+    <button name="action" value="Reported">
+        Report as Phishing
+    </button>
+
+    <button name="action" value="Ignored">
+        Ignore Email
+    </button>
+</form>
