@@ -1,0 +1,18 @@
+<h2>Employee Dashboard</h2>
+
+<nav>
+    <a href="/">Home</a> |
+    <a href="/employee">Dashboard</a> |
+    <a href="/awareness">Awareness</a>
+</nav>
+<hr>
+
+<h3>Available Campaigns:</h3>
+<ul>
+{% for c in campaigns %}
+    <li>
+        {{ c.scenario }}
+        <a href="/simulate/{{ c.id }}"><button>View Simulation</button></a>
+    </li>
+{% endfor %}
+</ul>

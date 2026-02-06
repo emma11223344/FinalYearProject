@@ -1,0 +1,17 @@
+<h2>Admin Dashboard</h2>
+
+<nav>
+    <a href="/">Home</a> |
+    <a href="/create">Create Campaign</a> |
+    <a href="/results">View Results</a> |
+    <a href="/employee">Employee</a> |
+    <a href="/awareness">Awareness</a>
+</nav>
+<hr>
+
+<h3>Existing Campaigns:</h3>
+<ul>
+{% for c in campaigns %}
+    <li>{{ c.scenario }}</li>
+{% endfor %}
+</ul>
