@@ -1,4 +1,5 @@
 <style>
+/*imported display/body fonts and shared palette*/
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
 
 :root {
@@ -30,6 +31,7 @@ body {
     padding: 0 20px 40px;
 }
 
+/*styling for the login page, including the hero section, form fields, buttons, and error messages. The design uses a clean and modern aesthetic with a focus on usability and accessibility. The color scheme is consistent with the rest of the application, using the same palette to create a cohesive visual experience. The hero section prominently displays the role being logged into, while the form fields are clearly labeled and easy to interact with. Error messages are styled to be noticeable without being disruptive, providing clear feedback to users during the login process.*/
 .hero {
     border-radius: 18px;
     padding: 22px 22px;
@@ -38,6 +40,7 @@ body {
     box-shadow: 0 12px 28px rgba(8, 51, 68, 0.24);
     background: {% if role == 'admin' %}linear-gradient(125deg, #1f2937 0%, #0f766e 58%, #14b8a6 100%){% else %}linear-gradient(125deg, #0f172a 0%, #0f766e 52%, #22c55e 100%){% endif %};
 }
+
 
 .role-badge {
     display: inline-block;
@@ -135,7 +138,7 @@ body {
 .btn:hover {
     filter: brightness(0.95);
 }
-
+/*styles for error messages and hints to guide users through the login process and provide feedback on any issues encountered during login attempts*/
 .error {
     margin: 0 0 12px;
     padding: 10px;
@@ -166,7 +169,7 @@ body {
 
 <section class="hero">
 <span class="role-badge">{{ role }} Portal</span>
-<h2 class="title">{{ role }} Login</h2>
+<h2 class="title">PhishProof | {{ role }} Login</h2>
 <p class="subtitle">Secure access to the phishing training platform</p>
 </section>
 

@@ -182,11 +182,11 @@
 </style>
 
 <div class="page">
-    <h2 class="title">Admin Dashboard</h2>
+    <h2 class="title">PhishProof | Admin Dashboard</h2>
     <p class="meta" style="text-align:center; margin: 0 0 16px;">Total campaigns: {{ campaigns|length }}</p>
 
-    <!-- Shared navigation shell for consistent page-to-page UX. -->
-    <nav class="top-nav"> <!--navigation links for the admin dashboard-->
+   <!--navigation links for the admin dashboard-->
+    <nav class="top-nav"> 
         <a href="/">Home</a>
         <a href="/results">View Results</a>
         <a href="/employee">Employee</a>
@@ -201,8 +201,9 @@
         {% elif message == "campaign-not-found" %}
         <p class="message warn">Campaign not found.</p>
         {% endif %}
-        <!-- Existing campaign creation flow kept, restyled to the new global design language. -->
-        <form method="post" action="/create"> <!--form to create a new phishing campaign, submits the selected scenario to the server-->
+       
+        <!--form to create a new phishing campaign, submits the selected scenario to the server-->
+        <form method="post" action="/create"> 
             <div class="field">
                 <label for="scenario">Scenario:</label>
                 <select name="scenario" id="scenario">
@@ -234,7 +235,7 @@
 
     <div class="card">
         <h3 class="section-title">Existing Campaigns:</h3> <!--display the list of existing campaigns retrieved from the database-->
-        <!-- Existing list behavior unchanged; this section now visually matches all other cards. -->
+        
         <ul class="list">
         {% for c in campaigns %}
             <li class="campaign-row">
@@ -250,7 +251,7 @@
         {% endfor %}
         </ul>
     </div>
-
+    <!--section to display recent interactions with the simulations, such as employee actions taken during the simulations-->
     <div class="card" style="margin-top: 18px;">
         <h3 class="section-title">Recent Simulation Interactions</h3>
         {% if recent_interactions %}
