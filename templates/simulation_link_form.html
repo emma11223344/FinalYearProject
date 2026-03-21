@@ -1,0 +1,182 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+
+    :root {
+        --bg: #f8fafc;
+        --ink: #0f172a;
+        --line: #dbe3ee;
+        --card: #ffffff;
+        --accent: #0f766e;
+        --danger: #b91c1c;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+            radial-gradient(circle at 12% 12%, #e4f7ff 0%, transparent 34%),
+            radial-gradient(circle at 88% 18%, #ecfff4 0%, transparent 30%),
+            linear-gradient(180deg, #f0f9ff 0%, var(--bg) 45%, #ffffff 100%);
+    }
+
+    .page {
+        max-width: 620px;
+        margin: 36px auto;
+        padding: 0 18px 28px;
+    }
+
+    .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+    }
+
+    .title {
+        margin: 0 0 6px;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        font-size: 28px;
+    }
+
+    .subtitle {
+        margin: 0 0 16px;
+        color: #475569;
+    }
+
+    .badge {
+        display: inline-block;
+        margin-bottom: 14px;
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+        color: #334155;
+    }
+
+    .badge.phishing {
+        border-color: #fecaca;
+        background: #fff1f2;
+        color: #991b1b;
+    }
+
+    .meta {
+        margin: 0 0 16px;
+        font-size: 14px;
+        color: #334155;
+    }
+
+    .field {
+        margin-bottom: 12px;
+    }
+
+    .field label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .field input {
+        width: 100%;
+        border: 1px solid #cbd5e1;
+        border-radius: 9px;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-family: inherit;
+    }
+
+    .field input:focus {
+        outline: 2px solid #99f6e4;
+        border-color: var(--accent);
+    }
+
+    .error {
+        margin: 0 0 12px;
+        border: 1px solid #fecaca;
+        background: #fff1f2;
+        color: #991b1b;
+        border-radius: 9px;
+        padding: 9px 10px;
+        font-size: 13px;
+    }
+
+    .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .btn {
+        border: 1px solid transparent;
+        border-radius: 9px;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-submit {
+        background: var(--accent);
+        color: #ffffff;
+    }
+
+    .btn-back {
+        background: #ffffff;
+        color: #334155;
+        border-color: #cbd5e1;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+    }
+</style>
+
+<div class="page">
+    <div class="panel">
+        <h2 class="title">{{ simulation.subject }}</h2>
+        <p class="subtitle">{{ simulation.sender }}</p>
+
+        <span class="badge {% if is_phishing %}phishing{% endif %}">
+            {% if is_phishing %}External verification portal{% else %}Internal company portal{% endif %}
+        </span>
+
+        <p class="meta">
+            Campaign: <strong>{{ campaign.scenario }}</strong><br>
+            Destination: <strong>{{ simulation.link }}</strong>
+        </p>
+
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="post" action="/simulate/{{ campaign.id }}/link">
+            <div class="field">
+                <label for="full_name">Full name</label>
+                <input id="full_name" name="full_name" type="text" placeholder="Enter your full name">
+            </div>
+
+            <div class="field">
+                <label for="account_identifier">{% if is_phishing %}Work email{% else %}Employee ID{% endif %}</label>
+                <input id="account_identifier" name="account_identifier" type="text" placeholder="{% if is_phishing %}name@company.com{% else %}EMP-1427{% endif %}">
+            </div>
+
+            <div class="field">
+                <label for="verification_value">{% if is_phishing %}Password or one-time code{% else %}RSVP code or confirmation token{% endif %}</label>
+                <input id="verification_value" name="verification_value" type="text" placeholder="{% if is_phishing %}Enter requested credential{% else %}Enter confirmation token{% endif %}">
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-submit" type="submit">Submit Details</button>
+                <a class="btn btn-back" href="/simulate/{{ campaign.id }}">Back to Email</a>
+            </div>
+        </form>
+    </div>
+</div>

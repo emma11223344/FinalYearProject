@@ -1,51 +1,85 @@
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+
+:root {
+    --bg: #f6fbff;
+    --ink: #0f172a;
+    --line: #d9e2ec;
+    --card: #ffffff;
+    --muted: #64748b;
+}
+
 * {
     box-sizing: border-box;
 }
 
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f3f5f8;
-    color: #1f2937;
+    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+        radial-gradient(circle at 10% 10%, #dff8ff 0%, transparent 35%),
+        radial-gradient(circle at 90% 20%, #e8fff5 0%, transparent 32%),
+        linear-gradient(180deg, #eff8ff 0%, var(--bg) 38%, #ffffff 100%);
+    min-height: 100vh;
 }
 
 .page {
-    max-width: 520px;
-    margin: 48px auto;
-    padding: 0 20px 32px;
+    max-width: 560px;
+    margin: 30px auto;
+    padding: 0 20px 40px;
+}
+
+.hero {
+    border-radius: 18px;
+    padding: 22px 22px;
+    margin-bottom: 20px;
+    color: #ecfeff;
+    box-shadow: 0 12px 28px rgba(8, 51, 68, 0.24);
+    background: {% if role == 'admin' %}linear-gradient(125deg, #1f2937 0%, #0f766e 58%, #14b8a6 100%){% else %}linear-gradient(125deg, #0f172a 0%, #0f766e 52%, #22c55e 100%){% endif %};
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
 }
 
 .title {
-    margin: 0 0 8px;
-    font-size: 30px;
-    text-align: center;
-    color: #0f172a;
+    margin: 10px 0 6px;
+    font-size: 33px;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
     text-transform: capitalize;
 }
 
 .subtitle {
-    text-align: center;
-    color: #6b7280;
-    margin-bottom: 20px;
+    margin: 0;
+    color: #d1fae5;
+    line-height: 1.5;
 }
 
 .top-nav {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 18px;
     margin-bottom: 24px;
     padding: 12px 16px;
-    background: #ffffff;
-    border: 1px solid #d9e2ec;
-    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
 }
 
 .top-nav a {
     text-decoration: none;
-    color: #1d4ed8;
-    font-weight: 600;
+    color: #0f766e;
+    font-weight: 700;
 }
 
 .top-nav a:hover {
@@ -53,11 +87,11 @@ body {
 }
 
 .card {
-    background: #ffffff;
-    border: 1px solid #d9e2ec;
-    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
     padding: 24px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
 }
 
 .field {
@@ -82,6 +116,7 @@ body {
 .show-password {
     font-size: 13px;
     margin-bottom: 14px;
+    color: var(--muted);
 }
 
 .btn {
@@ -92,9 +127,9 @@ body {
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
-    background: #1d4ed8;
-    color: #ffffff;
     width: 100%;
+    background: {% if role == 'admin' %}#0f766e{% else %}#15803d{% endif %};
+    color: #ffffff;
 }
 
 .btn:hover {
@@ -112,13 +147,13 @@ body {
 
 .hint {
     margin-top: 14px;
-    color: #6b7280;
+    color: var(--muted);
     font-size: 13px;
     text-align: center;
 }
 
 .hint a {
-    color: #1d4ed8;
+    color: #0f766e;
     text-decoration: none;
 }
 
@@ -129,8 +164,11 @@ body {
 
 <div class="page">
 
+<section class="hero">
+<span class="role-badge">{{ role }} Portal</span>
 <h2 class="title">{{ role }} Login</h2>
 <p class="subtitle">Secure access to the phishing training platform</p>
+</section>
 
 <nav class="top-nav">
     <a href="/">Home</a>
@@ -142,6 +180,7 @@ body {
 <div class="card">
 
 {% if error %}
+<!--backend validation messages from role/password/profile checks appear here-->
 <p class="error">{{ error }}</p>
 {% endif %}
 
@@ -179,14 +218,13 @@ No account yet? <a href="/create-account">Create one here</a>
 Always check the website URL before entering your credentials.
 </p>
 
-<p class="hint">
-Demo credentials: admin/admin123 and employee/employee123
-</p>
+
 
 </div>
 </div>
 
 <script>
+//toggles password visibility 
 function togglePassword() {
     const password = document.getElementById("password");
     password.type = password.type === "password" ? "text" : "password";
