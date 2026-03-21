@@ -139,9 +139,10 @@
     }
 </style>
 
+<!-- Form for submitting simulation link details -->
 <div class="page">
     <div class="panel">
-        <h2 class="title">{{ simulation.subject }}</h2>
+        <h2 class="title">PhishProof | {{ simulation.subject }}</h2>
         <p class="subtitle">{{ simulation.sender }}</p>
 
         <span class="badge {% if is_phishing %}phishing{% endif %}">
@@ -162,17 +163,17 @@
                 <label for="full_name">Full name</label>
                 <input id="full_name" name="full_name" type="text" placeholder="Enter your full name">
             </div>
-
+            <!--depending on whether the simulation is phishing or not, the form fields and placeholders adjust to reflect the context. For phishing simulations, the form prompts for work email and password/one-time code, mimicking a typical phishing attempt-->
             <div class="field">
                 <label for="account_identifier">{% if is_phishing %}Work email{% else %}Employee ID{% endif %}</label>
                 <input id="account_identifier" name="account_identifier" type="text" placeholder="{% if is_phishing %}name@company.com{% else %}EMP-1427{% endif %}">
             </div>
-
+            
             <div class="field">
                 <label for="verification_value">{% if is_phishing %}Password or one-time code{% else %}RSVP code or confirmation token{% endif %}</label>
                 <input id="verification_value" name="verification_value" type="text" placeholder="{% if is_phishing %}Enter requested credential{% else %}Enter confirmation token{% endif %}">
             </div>
-
+            <!--the form submits the entered details to the server for validation, which checks the inputs against expected values for the simulation and determines whether the employee's action indicates they fell for the phishing attempt or correctly identified it. The server then responds with feedback based on the validation results.-->
             <div class="actions">
                 <button class="btn btn-submit" type="submit">Submit Details</button>
                 <a class="btn btn-back" href="/simulate/{{ campaign.id }}">Back to Email</a>

@@ -1,5 +1,5 @@
 <style>
-    /* Simulation view: presents campaign email content and action buttons that submit one completion result. */
+    
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
 
     :root {
@@ -211,7 +211,7 @@
 </style>
 
 <div class="page">
-    <h2 class="title">Email Inbox</h2>
+    <h2 class="title">PhishProof | Email Inbox</h2>
 
     <nav class="top-nav">
         <a href="/">Home</a>
@@ -260,8 +260,8 @@
         {% endif %}
     </div>
 
-    <form method="post" action="/report" class="actions"> <!--form to submit the employee's action after simulating the phishing scenario sends the campaign name and action taken to the server-->
-        <!-- New hidden field: campaign_id enables per-campaign completion lock in backend. -->
+    <form method="post" action="/report" class="actions"> <!--form to submit the employee action after simulating the phishing scenario sends the campaign name and action taken to the server-->
+       <!--Hidden field for campaign ID-->
         <input type="hidden" name="campaign_id" value="{{ campaign.id }}">
 
         <p style="width:100%;text-align:center;margin:0 0 4px;color:#334155;font-size:14px;">

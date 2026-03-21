@@ -1,5 +1,5 @@
 <style>
-    /* Results page now includes employee email so admins can trace who completed each simulation. */
+/*global styles for the results page, including typography, layout, and table styling. The design is consistent with the rest of the application, using the same color palette and font choices to create a cohesive visual experience*/
     * {
         box-sizing: border-box;
     }
@@ -86,7 +86,7 @@
 </style>
 
 <div class="page">
-    <h2 class="title">Results</h2>
+    <h2 class="title">PhishProof | Results</h2>
     <p style="text-align:center; margin: 0 0 16px; color: #475569;">Total campaigns: {{ campaigns|length }}</p>
 
     <nav class="top-nav">
@@ -119,7 +119,6 @@
     <div class="card">
         <h3 class="section-title">All Actions:</h3> <!--table to display the results of phishing simulations, showing the campaign, action taken by employees, and the outcome-->
         <table>
-            <!-- New column added after backend started storing employee_email in Result rows. -->
             <tr><th>Campaign</th><th>Action</th><th>Employee Email</th></tr>
             {% for r in data %}
             <tr>

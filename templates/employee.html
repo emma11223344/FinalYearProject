@@ -1,5 +1,5 @@
 <style>
-    /* Theme update: this dashboard now uses the same palette/typography as awareness for a single visual system. */
+    /*use the same typography as everything else for a single visual system. */
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
 
     :root {
@@ -97,7 +97,7 @@
     }
 
     .btn-completed {
-        /* New state style: indicates simulations that are already completed and cannot be reopened. */
+        /*disabled state for completed simulations: grayed out and non-interactive. */
         background: #64748b;
         color: #ffffff;
         cursor: not-allowed;
@@ -120,8 +120,9 @@
     }
 </style>
 
+<!--employee dashboard-->
 <div class="page">
-    <h2 class="title">Employee Dashboard</h2>
+    <h2 class="title">PhishProof | Employee Dashboard</h2>
 
     <nav class="top-nav">
         <a href="/">Home</a>
@@ -131,7 +132,7 @@
 
     <div class="card">
         <h3 class="section-title">Available Campaigns:</h3> <!--display the list of available phishing campaigns for employees to simulate, retrieved from the database-->
-        <!-- New message shown when backend blocks duplicate completion attempts. -->
+        <!--message shown when backend blocks duplicate completion attempts-->
         {% if message == "already-completed" %}
         <p class="message">You already completed this simulation.</p>
         {% endif %}
@@ -140,7 +141,7 @@
             <li>
                 {{ c.scenario }}
                 {% if c.id in completed_campaign_ids %}
-                <!-- New completion lock state: campaign remains visible but disabled after submission. -->
+                <!--campaign remains visible but disabled after submission-->
                 <button class="btn btn-completed" disabled>Completed</button>
                 <span class="status">Done</span>
                 {% else %}

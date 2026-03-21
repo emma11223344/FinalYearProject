@@ -202,7 +202,7 @@
 <div class="page">
     <div class="title-row">
         <div>
-            <h2 class="title">Campaign: {{ campaign.scenario }}</h2>
+            <h2 class="title">PhishProof | Campaign: {{ campaign.scenario }}</h2>
             <p class="subtitle">Detailed campaign performance and participant actions.</p>
         </div>
         <form method="post" action="/admin/campaign/{{ campaign.id }}/delete" onsubmit="return confirm('Delete this campaign and all related results? This action cannot be undone.');">
