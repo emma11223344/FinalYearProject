@@ -1,4 +1,5 @@
 <style>
+    /* Results page now includes employee email so admins can trace who completed each simulation. */
     * {
         box-sizing: border-box;
     }
@@ -86,6 +87,7 @@
 
 <div class="page">
     <h2 class="title">Results</h2>
+    <p style="text-align:center; margin: 0 0 16px; color: #475569;">Total campaigns: {{ campaigns|length }}</p>
 
     <nav class="top-nav">
         <a href="/">Home</a>
@@ -104,13 +106,26 @@
     </div>
 
     <div class="card">
+        <h3 class="section-title">Campaigns:</h3>
+        <ul class="list">
+            {% for c in campaigns %}
+            <li><a href="/admin/campaign/{{ c.id }}">{{ c.scenario }}</a></li>
+            {% else %}
+            <li>No campaigns created yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="card">
         <h3 class="section-title">All Actions:</h3> <!--table to display the results of phishing simulations, showing the campaign, action taken by employees, and the outcome-->
         <table>
-            <tr><th>Campaign</th><th>Action</th></tr>
+            <!-- New column added after backend started storing employee_email in Result rows. -->
+            <tr><th>Campaign</th><th>Action</th><th>Employee Email</th></tr>
             {% for r in data %}
             <tr>
                 <td>{{ r.campaign }}</td>
                 <td>{{ r.action }}</td>
+                <td>{{ r.employee_email or '-' }}</td>
             </tr>
             {% endfor %}
         </table>

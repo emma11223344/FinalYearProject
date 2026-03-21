@@ -105,9 +105,26 @@
             <div class="field">
                 <label for="scenario">Scenario:</label>
                 <select name="scenario" id="scenario">
-                    <option>Password Reset</option>
-                    <option>Invoice Scam</option>
-                    <option>Delivery Notice</option>
+                    <optgroup label="Phishing Simulations">
+                        <option>Password Reset</option>
+                        <option>Invoice Scam</option>
+                        <option>Delivery Notice</option>
+                        <option>MFA Expiration</option>
+                        <option>Shared Document</option>
+                        <option>HR Policy Update</option>
+                        <option>CEO Wire Request</option>
+                        <option>Benefits Enrollment</option>
+                    </optgroup>
+                    <optgroup label="Legitimate (Non-Phishing) Simulations">
+                        <option>Team Lunch Invite</option>
+                        <option>IT Maintenance Notice</option>
+                        <option>Quarterly Town Hall</option>
+                        <option>Training Reminder</option>
+                        <option>Security Patch Advisory</option>
+                        <option>Facilities Access Notice</option>
+                        <option>Project Kickoff Invite</option>
+                        <option>Payroll Schedule Update</option>
+                    </optgroup>
                 </select>
             </div>
             <button type="submit" class="btn">Create Campaign</button>

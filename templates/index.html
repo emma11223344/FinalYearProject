@@ -1,26 +1,83 @@
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+
+    :root {
+        --bg: #f6fbff;
+        --ink: #0f172a;
+        --muted: #475569;
+        --brand-dark: #0f766e;
+        --brand: #14b8a6;
+        --card: #ffffff;
+        --line: #d9e2ec;
+    }
+
     * {
         box-sizing: border-box;
     }
 
     body {
         margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f3f5f8;
-        color: #1f2937;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--ink);
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at 10% 10%, #dff8ff 0%, transparent 35%),
+            radial-gradient(circle at 90% 20%, #e8fff5 0%, transparent 32%),
+            linear-gradient(180deg, #eff8ff 0%, var(--bg) 38%, #ffffff 100%);
     }
 
     .page {
-        max-width: 900px;
-        margin: 32px auto;
-        padding: 0 20px 32px;
+        max-width: 1100px;
+        margin: 28px auto;
+        padding: 0 20px 40px;
+    }
+
+    .hero {
+        border-radius: 18px;
+        padding: 30px 26px;
+        margin-bottom: 20px;
+        background: linear-gradient(130deg, #083344 0%, #0f766e 50%, #14b8a6 100%);
+        color: #ecfeff;
+        box-shadow: 0 12px 30px rgba(8, 51, 68, 0.28);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero::after {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        right: -70px;
+        top: -70px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .eyebrow {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.18);
+        font-size: 12px;
+        letter-spacing: 0.3px;
+        font-weight: 700;
+        text-transform: uppercase;
     }
 
     .title {
-        margin: 0 0 16px;
-        font-size: 30px;
-        text-align: center;
-        color: #0f172a;
+        margin: 10px 0 8px;
+        font-size: 40px;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        line-height: 1.1;
+        max-width: 730px;
+    }
+
+    .subtitle {
+        margin: 0;
+        max-width: 760px;
+        color: #d1fae5;
+        line-height: 1.6;
     }
 
     .top-nav {
@@ -30,27 +87,58 @@
         gap: 20px;
         margin-bottom: 24px;
         padding: 12px 16px;
-        background: #ffffff;
-        border: 1px solid #d9e2ec;
-        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        backdrop-filter: blur(5px);
     }
 
     .top-nav a {
         text-decoration: none;
-        color: #1d4ed8;
-        font-weight: 600;
+        color: var(--brand-dark);
+        font-weight: 700;
     }
 
     .top-nav a:hover {
         text-decoration: underline;
     }
 
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 16px;
+    }
+
     .card {
-        background: #ffffff;
-        border: 1px solid #d9e2ec;
-        border-radius: 12px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
         padding: 24px;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .span-8 {
+        grid-column: span 8;
+    }
+
+    .span-4 {
+        grid-column: span 4;
+    }
+
+    .span-12 {
+        grid-column: span 12;
+    }
+
+    .section-title {
+        margin: 0 0 10px;
+        font-size: 23px;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    }
+
+    .section-copy {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
     }
 
     .actions {
@@ -69,10 +157,11 @@
         font-size: 14px;
         text-decoration: none;
         cursor: pointer;
+        transition: transform 180ms ease, filter 180ms ease;
     }
 
     .btn-primary {
-        background: #1d4ed8;
+        background: var(--brand-dark);
         color: #ffffff;
     }
 
@@ -83,12 +172,78 @@
     }
 
     .btn:hover {
+        transform: translateY(-1px);
         filter: brightness(0.95);
+    }
+
+    .role-grid {
+        display: grid;
+        gap: 12px;
+    }
+
+    .role-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+        padding: 14px;
+    }
+
+    .role-item h4 {
+        margin: 0 0 4px;
+        font-size: 17px;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    }
+
+    .role-item p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .stats {
+        display: grid;
+        gap: 10px;
+    }
+
+    .stat {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px;
+        background: #f8fafc;
+    }
+
+    .stat .num {
+        font-size: 28px;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        color: var(--brand-dark);
+        line-height: 1;
+    }
+
+    .stat .label {
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    @media (max-width: 860px) {
+        .title {
+            font-size: 32px;
+        }
+
+        .span-8,
+        .span-4,
+        .span-12 {
+            grid-column: span 12;
+        }
     }
 </style>
 
 <div class="page">
-    <h1 class="title">Welcome to the Phishing Awareness Training Platform</h1>
+    <section class="hero">
+        <span class="eyebrow">Security Training</span>
+        <h1 class="title">Build Strong Phishing Defense Habits</h1>
+        <p class="subtitle">Run realistic simulations, track user behavior, and improve reporting culture across your team.</p>
+    </section>
 
     <nav class="top-nav">
         <a href="/">Home</a>
@@ -99,12 +254,48 @@
         <a href="/logout">Logout</a>
     </nav>
 
-    <div class="card">
-        <p>Select your role:</p> <!--buttons to navigate to different sections of the platform based on user role-->
-        <div class="actions">
-            <a href="/login/admin" class="btn btn-primary">Admin Login</a>
-            <a href="/login/employee" class="btn btn-secondary">Employee Login</a>
-            <a href="/create-account" class="btn btn-secondary">Create Account</a>
-        </div>
-    </div>
+    <section class="grid">
+        <article class="card span-8">
+            <h3 class="section-title">Choose Your Role</h3>
+            <p class="section-copy">Get started from the right portal. Admins create campaigns and review performance. Employees complete simulations and build awareness skills.</p>
+            <div class="actions">
+                <a href="/login/admin" class="btn btn-primary">Admin Login</a>
+                <a href="/login/employee" class="btn btn-secondary">Employee Login</a>
+                <a href="/create-account" class="btn btn-secondary">Create Account</a>
+            </div>
+            <div class="role-grid" style="margin-top:14px;">
+                <div class="role-item">
+                    <h4>Admin Workspace</h4>
+                    <p>Create phishing scenarios, monitor outcomes, and review employee reporting trends.</p>
+                </div>
+                <div class="role-item">
+                    <h4>Employee Workspace</h4>
+                    <p>Complete assigned simulations, practice spotting red flags, and improve safe response habits.</p>
+                </div>
+            </div>
+        </article>
+
+        <aside class="card span-4">
+            <h3 class="section-title">At A Glance</h3>
+            <div class="stats">
+                <div class="stat">
+                    <div class="num">16</div>
+                    <div class="label">simulation scenarios available</div>
+                </div>
+                <div class="stat">
+                    <div class="num">1</div>
+                    <div class="label">dashboard for campaign results</div>
+                </div>
+                <div class="stat">
+                    <div class="num">24/7</div>
+                    <div class="label">awareness content access</div>
+                </div>
+            </div>
+        </aside>
+
+        <article class="card span-12">
+            <h3 class="section-title">Quick Start</h3>
+            <p class="section-copy">1. Create account with your role. 2. Admin creates a campaign. 3. Employee completes simulations. 4. Review results and improve training focus.</p>
+        </article>
+    </section>
 </div>
