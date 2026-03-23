@@ -78,29 +78,6 @@
         margin-bottom: 8px;
     }
 
-    .risk-badge {
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 700;
-        border: 1px solid #e5e7eb;
-        background: #f8fafc;
-        color: #334155;
-    }
-
-    .risk-badge.high,
-    .risk-badge.critical {
-        background: #fff1f2;
-        color: #991b1b;
-        border-color: #fecaca;
-    }
-
-    .risk-badge.medium {
-        background: #fffbeb;
-        color: #92400e;
-        border-color: #fde68a;
-    }
-
     .meta {
         margin: 0 0 10px;
     }
@@ -129,13 +106,6 @@
         color: var(--brand-dark);
         text-decoration: underline;
         font-weight: 600;
-        word-break: break-all;
-    }
-
-    .link-actual {
-        margin: 0 0 8px;
-        color: #991b1b;
-        font-size: 13px;
         word-break: break-all;
     }
 
@@ -223,7 +193,6 @@
         <!-- This section renders scenario-specific message content prepared in app.py. -->
         <div class="header-row">
             <p class="meta"><strong>Scenario:</strong> {{ campaign.scenario }}</p>
-            <span class="risk-badge {{ simulation.risk_level|lower }}">Risk: {{ simulation.risk_level }}</span>
         </div>
         <div class="meta-grid">
             <p><strong>From:</strong> {{ simulation.sender }}</p>
@@ -239,9 +208,6 @@
         {% endfor %}
 
         <a class="link-look" href="/simulate/{{ campaign.id }}/link">{{ simulation.display_link }}</a>
-        {% if simulation.display_link != simulation.link %}
-        <p class="link-actual"><strong>Actual destination:</strong> {{ simulation.link }}</p>
-        {% endif %}
 
         {% if simulation.attachment %}
         <p class="attachment"><strong>Attachment:</strong> {{ simulation.attachment }}</p>

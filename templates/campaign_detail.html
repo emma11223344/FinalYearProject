@@ -120,19 +120,6 @@
         margin: 0;
     }
 
-    .risk-badge {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        border: 1px solid #cbd5e1;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-weight: 700;
-        margin-bottom: 12px;
-        background: #f8fafc;
-        color: #1f2937;
-    }
-
     .preview-link {
         color: #1d4ed8;
         text-decoration: none;
@@ -243,7 +230,6 @@
 
         <article class="card span-12">
             <h3>Campaign Message Preview</h3>
-            <span class="risk-badge">Risk: {{ campaign_preview.risk_level }}</span>
 
             <div class="preview-grid">
                 <p class="preview-meta"><strong>From:</strong> {{ campaign_preview.sender }}</p>
@@ -262,10 +248,6 @@
                 <strong>Link shown:</strong>
                 <a class="preview-link" href="{{ campaign_preview.display_link }}" target="_blank" rel="noopener noreferrer">{{ campaign_preview.display_link }}</a>
             </p>
-
-            {% if campaign_preview.display_link != campaign_preview.link %}
-            <p><strong>Actual destination:</strong> {{ campaign_preview.link }}</p>
-            {% endif %}
 
             {% if campaign_preview.attachment %}
             <p><strong>Attachment:</strong> {{ campaign_preview.attachment }}</p>
