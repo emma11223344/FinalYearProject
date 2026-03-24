@@ -201,6 +201,28 @@
         color: #991b1b;
         border-color: #fecaca;
     }
+
+    .simulation-pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .simulation-phishing {
+        background: #fee2e2;
+        color: #991b1b;
+        border-color: #fecaca;
+    }
+
+    .simulation-safe {
+        background: #dbeafe;
+        color: #1e40af;
+        border-color: #bfdbfe;
+    }
 </style>
 
 <div class="page">
@@ -278,11 +300,16 @@
         <h3 class="section-title">Recent Simulation Interactions</h3>
         {% if recent_interactions %}
         <table>
-            <tr><th>Employee Email</th><th>Campaign</th><th>Action</th><th>Reported Status</th></tr>
+            <tr><th>Employee Email</th><th>Campaign</th><th>Simulation Type</th><th>Action</th><th>Reported Status</th></tr>
             {% for interaction in recent_interactions %}
             <tr>
-                <td>{{ interaction.employee_email or '-' }}</td>
+                <td>{{ interaction.employee_email or '-' }}</td> <!--display the employee email, campaign name, action taken, and whether the email was reported or not for each interaction retrieved from the database-->
                 <td>{{ interaction.campaign or '-' }}</td>
+                <td>
+                    <span class="simulation-pill {% if interaction.simulation_type_label == 'Phishing' %}simulation-phishing{% else %}simulation-safe{% endif %}">
+                        {{ interaction.simulation_type_label }}
+                    </span>
+                </td>
                 <td>{{ interaction.action or '-' }}</td>
                 <td><span class="status-pill {{ interaction.status_class }}">{{ interaction.status_label }}</span></td>
             </tr>

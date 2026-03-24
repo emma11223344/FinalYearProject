@@ -132,6 +132,7 @@ def annotate_action_status_for_admin(interaction):
     is_legitimate = scenario in LEGITIMATE_SCENARIOS
     is_reported = interaction.action == "Reported"
 
+    interaction.simulation_type_label = "Not Phishing" if is_legitimate else "Phishing"
     interaction.status_label = "Reported" if is_reported else "Unreported"
     interaction.is_correct = (not is_legitimate) if is_reported else is_legitimate
     interaction.status_class = "status-correct" if interaction.is_correct else "status-incorrect"
