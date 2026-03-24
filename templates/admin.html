@@ -179,6 +179,28 @@
         background: #eff6ff;
         color: #0f172a;
     }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .status-correct {
+        background: #dcfce7;
+        color: #166534;
+        border-color: #bbf7d0;
+    }
+
+    .status-incorrect {
+        background: #fee2e2;
+        color: #991b1b;
+        border-color: #fecaca;
+    }
 </style>
 
 <div class="page">
@@ -256,12 +278,13 @@
         <h3 class="section-title">Recent Simulation Interactions</h3>
         {% if recent_interactions %}
         <table>
-            <tr><th>Employee Email</th><th>Campaign</th><th>Action</th></tr>
+            <tr><th>Employee Email</th><th>Campaign</th><th>Action</th><th>Reported Status</th></tr>
             {% for interaction in recent_interactions %}
             <tr>
                 <td>{{ interaction.employee_email or '-' }}</td>
-                <td>{{ interaction.campaign }}</td>
-                <td>{{ interaction.action }}</td>
+                <td>{{ interaction.campaign or '-' }}</td>
+                <td>{{ interaction.action or '-' }}</td>
+                <td><span class="status-pill {{ interaction.status_class }}">{{ interaction.status_label }}</span></td>
             </tr>
             {% endfor %}
         </table>
