@@ -1,9 +1,8 @@
 from flask import Flask, render_template, request, redirect, session
-from modules.models import db, Campaign, Result
 from modules.report_generator import generate_campaign_report
 from collections import Counter
+from types import SimpleNamespace
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import inspect, text
 
 #firebase
 from firebase_admin import auth, firestore
@@ -16,54 +15,181 @@ app.secret_key = "secret-key"
 # Firestore is used for profile metadata (role + password hash) while Firebase Auth stores identity records.
 firestore_db = firestore.client()
 
+LEGITIMATE_SCENARIOS = {
+    "Team Lunch Invite",
+    "IT Maintenance Notice",
+    "Quarterly Town Hall",
+    "Training Reminder",
+    "Security Patch Advisory",
+    "Facilities Access Notice",
+    "Project Kickoff Invite",
+    "Payroll Schedule Update",
+}
 
-#database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
-#disable modification tracking to save resources
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+def save_simulation_result(
+    full_name,
+    account_identifier,
+    verification_value,
+    campaign_id,
+    campaign=None,
+    action=None,
+    employee_email=None,
+):
+    """Store detailed simulation form submissions in Firestore."""
+    payload = {
+        "full_name": full_name,
+        "account_identifier": account_identifier,
+        "verification_value": verification_value,
+        "campaign_id": campaign_id,
+        "created_at": firestore.SERVER_TIMESTAMP,
+    }
+
+    if campaign is not None:
+        payload["campaign"] = campaign
+    if action is not None:
+        payload["action"] = action
+    if employee_email is not None:
+        payload["employee_email"] = employee_email
+
+    try:
+        firestore_db.collection("simulation_results").add(payload)
+    except Exception as exc:
+        # Keep the simulation flow functional even if Firestore write fails temporarily.
+        if not app.config.get("TESTING"):
+            app.logger.warning("Failed to save simulation_result to Firestore: %s", exc)
+
+
+def save_employee_action_result(campaign, campaign_id, action, employee_email):
+    payload = {
+        "campaign": campaign,
+        "campaign_id": campaign_id,
+        "action": action,
+        "employee_email": employee_email,
+        "created_at": firestore.SERVER_TIMESTAMP,
+    }
+
+    try:
+        firestore_db.collection("simulation_results").add(payload)
+    except Exception as exc:
+        if not app.config.get("TESTING"):
+            app.logger.warning("Failed to save employee action to Firestore: %s", exc)
+
+
+def _result_from_doc(doc):
+    payload = doc.to_dict() or {}
+    return SimpleNamespace(
+        id=doc.id,
+        campaign=payload.get("campaign", ""),
+        campaign_id=payload.get("campaign_id"),
+        action=payload.get("action", ""),
+        employee_email=payload.get("employee_email"),
+        full_name=payload.get("full_name"),
+        account_identifier=payload.get("account_identifier"),
+        verification_value=payload.get("verification_value"),
+        created_at=payload.get("created_at"),
+    )
+
+
+def fetch_all_simulation_results():
+    docs = firestore_db.collection("simulation_results").stream()
+    results = [_result_from_doc(doc) for doc in docs]
+    results.sort(key=lambda r: ((r.created_at is not None), r.created_at or ""), reverse=True)
+    return results
+
+
+def fetch_results_by_campaign(campaign_id):
+    docs = firestore_db.collection("simulation_results").where("campaign_id", "==", campaign_id).stream()
+    results = [_result_from_doc(doc) for doc in docs]
+    results.sort(key=lambda r: ((r.created_at is not None), r.created_at or ""), reverse=True)
+    return results
+
+
+def fetch_results_by_employee(employee_email):
+    docs = firestore_db.collection("simulation_results").where("employee_email", "==", employee_email).stream()
+    return [_result_from_doc(doc) for doc in docs]
+
+
+def has_result_for_employee_campaign(employee_email, campaign_id):
+    docs = (
+        firestore_db.collection("simulation_results")
+        .where("employee_email", "==", employee_email)
+        .where("campaign_id", "==", campaign_id)
+        .limit(1)
+        .stream()
+    )
+    return next(docs, None) is not None
+
+
+def delete_results_by_campaign(campaign_id):
+    docs = firestore_db.collection("simulation_results").where("campaign_id", "==", campaign_id).stream()
+    for doc in docs:
+        doc.reference.delete()
+
+
+def annotate_action_status_for_admin(interaction):
+    scenario = interaction.campaign or ""
+    is_legitimate = scenario in LEGITIMATE_SCENARIOS
+    is_reported = interaction.action == "Reported"
+
+    interaction.status_label = "Reported" if is_reported else "Unreported"
+    interaction.is_correct = (not is_legitimate) if is_reported else is_legitimate
+    interaction.status_class = "status-correct" if interaction.is_correct else "status-incorrect"
+
+
 app.config["REPORTS_DIR"] = "instance/reports"
-#initialize the database with the Flask app
-db.init_app(app)
-_db_initialized = False
 
 
-def ensure_result_email_column():
-    # Backward-compatible DB migration for the new employee email field in Result.
-    inspector = inspect(db.engine)
-    result_columns = {column["name"] for column in inspector.get_columns("result")}
-
-    if "employee_email" not in result_columns:
-        db.session.execute(text("ALTER TABLE result ADD COLUMN employee_email VARCHAR(255)"))
-        db.session.commit()
-
-
-def ensure_result_campaign_id_column():
-    # Backward-compatible DB migration for campaign_id, used to lock each campaign to one completion per employee.
-    inspector = inspect(db.engine)
-    result_columns = {column["name"] for column in inspector.get_columns("result")}
-
-    if "campaign_id" not in result_columns:
-        db.session.execute(text("ALTER TABLE result ADD COLUMN campaign_id INTEGER"))
-        db.session.commit()
+def _campaign_from_doc(doc):
+    payload = doc.to_dict() or {}
+    return SimpleNamespace(
+        id=payload.get("campaign_id"),
+        scenario=payload.get("scenario", ""),
+        created_at=payload.get("created_at"),
+        firestore_doc_id=doc.id,
+    )
 
 
-def initialize_database():
-    global _db_initialized
-    if _db_initialized:
-        return
-
-    with app.app_context():
-        db.create_all()
-        # Run lightweight schema upgrades for existing local SQLite databases.
-        ensure_result_email_column()
-        ensure_result_campaign_id_column()
-
-    _db_initialized = True
+def fetch_all_campaigns(descending=False):
+    docs = firestore_db.collection("campaigns").stream()
+    campaigns = [_campaign_from_doc(doc) for doc in docs]
+    campaigns.sort(key=lambda c: (c.id is not None, c.id or 0), reverse=descending)
+    return campaigns
 
 
-@app.before_request
-def ensure_database_ready():
-    initialize_database()
+def get_campaign_by_id(campaign_id):
+    docs = firestore_db.collection("campaigns").where("campaign_id", "==", campaign_id).limit(1).stream()
+    doc = next(docs, None)
+    if not doc:
+        return None
+    return _campaign_from_doc(doc)
+
+
+def get_next_campaign_id():
+    campaigns = fetch_all_campaigns(descending=True)
+    if not campaigns:
+        return 1
+    return (campaigns[0].id or 0) + 1
+
+
+def create_campaign_record(scenario):
+    campaign_id = get_next_campaign_id()
+    payload = {
+        "campaign_id": campaign_id,
+        "scenario": scenario,
+        "created_at": firestore.SERVER_TIMESTAMP,
+    }
+    firestore_db.collection("campaigns").add(payload)
+    return campaign_id
+
+
+def delete_campaign_record(campaign_id):
+    docs = firestore_db.collection("campaigns").where("campaign_id", "==", campaign_id).limit(1).stream()
+    doc = next(docs, None)
+    if not doc:
+        return False
+    doc.reference.delete()
+    return True
 
 #simulation builder with scenarios red flags, and risk levels for simulations
 def build_simulation_payload(scenario, recipient_email, recipient_name):
@@ -487,12 +613,15 @@ def admin():
     if session.get("role") != "admin":
         return redirect("/login/admin")
 
-    campaigns = Campaign.query.all()
-    recent_interactions = Result.query.order_by(Result.id.desc()).limit(12).all()
+    campaigns = fetch_all_campaigns()
+    all_results = fetch_all_simulation_results()
+    recent_interactions = all_results[:12]
+    for interaction in recent_interactions:
+        annotate_action_status_for_admin(interaction)
     campaign_stats = {}
 
     for campaign in campaigns:
-        rows = Result.query.filter_by(campaign_id=campaign.id).all()
+        rows = [result for result in all_results if result.campaign_id == campaign.id]
         summary = Counter(r.action for r in rows)
         unique_employees = len({r.employee_email for r in rows if r.employee_email})
 
@@ -520,9 +649,7 @@ def create():
         return redirect("/login/admin")
 
     scenario = request.form["scenario"]
-
-    db.session.add(Campaign(scenario=scenario))
-    db.session.commit()
+    create_campaign_record(scenario)
 
     return redirect("/admin")
 
@@ -533,8 +660,8 @@ def results():
     if session.get("role") != "admin":
         return redirect("/login/admin")
 
-    data = Result.query.all()
-    campaigns = Campaign.query.order_by(Campaign.id.desc()).all()
+    data = fetch_all_simulation_results()
+    campaigns = fetch_all_campaigns(descending=True)
     actions = [r.action for r in data]
     summary = Counter(actions)
 
@@ -547,12 +674,12 @@ def campaign_detail(id):
     if session.get("role") != "admin":
         return redirect("/login/admin")
 
-    campaign = Campaign.query.get(id)
+    campaign = get_campaign_by_id(id)
 
     if not campaign:
         return redirect("/admin")
 
-    data = Result.query.filter_by(campaign_id=id).all()
+    data = fetch_results_by_campaign(id)
     summary = Counter(r.action for r in data)
     unique_employees = len({r.employee_email for r in data if r.employee_email})
     admin_email = session.get("email", "admin@company.com")
@@ -576,14 +703,11 @@ def delete_campaign(id):
     if session.get("role") != "admin":
         return redirect("/login/admin")
 
-    campaign = Campaign.query.get(id)
-
-    if not campaign:
+    if not get_campaign_by_id(id):
         return redirect("/admin?message=campaign-not-found")
 
-    Result.query.filter_by(campaign_id=id).delete()
-    db.session.delete(campaign)
-    db.session.commit()
+    delete_results_by_campaign(id)
+    delete_campaign_record(id)
 
     return redirect("/admin?message=campaign-deleted")
 
@@ -595,12 +719,10 @@ def employee():
         return redirect("/login/employee")
 
     employee_email = session.get("email", "")
-    campaigns = Campaign.query.all()
+    campaigns = fetch_all_campaigns()
     # Build a per-employee set of completed campaign IDs to disable re-running completed simulations.
     completed_campaign_ids = {
-        r.campaign_id
-        for r in Result.query.filter_by(employee_email=employee_email).all()
-        if r.campaign_id is not None
+        r.campaign_id for r in fetch_results_by_employee(employee_email) if r.campaign_id is not None
     }
 
     return render_template(
@@ -618,14 +740,13 @@ def simulate(id):
         return redirect("/login/employee")
 
     employee_email = session.get("email", "")
-    campaign = Campaign.query.get(id)
+    campaign = get_campaign_by_id(id)
 
     if not campaign:
         return "Campaign not found"
 
     # Block simulation view if this employee already completed this campaign once.
-    existing_result = Result.query.filter_by(employee_email=employee_email, campaign_id=id).first()
-    if existing_result:
+    if has_result_for_employee_campaign(employee_email, id):
         return redirect("/employee?message=already-completed")
 
     employee_name = employee_email.split("@")[0].replace(".", " ").title() if employee_email else "Employee"
@@ -641,13 +762,12 @@ def simulate_link_interaction(id):
         return redirect("/login/employee")
 
     employee_email = session.get("email", "")
-    campaign = Campaign.query.get(id)
+    campaign = get_campaign_by_id(id)
 
     if not campaign:
         return redirect("/employee")
 
-    existing_result = Result.query.filter_by(employee_email=employee_email, campaign_id=id).first()
-    if existing_result:
+    if has_result_for_employee_campaign(employee_email, id):
         return redirect("/employee?message=already-completed")
 
     employee_name = employee_email.split("@")[0].replace(".", " ").title() if employee_email else "Employee"
@@ -665,17 +785,17 @@ def simulate_link_interaction(id):
         else:
             action = "Clicked Link" if is_phishing else "Completed Legitimate Form"
 
-            db.session.add(
-                Result(
-                    campaign=campaign.scenario,
-                    campaign_id=id,
-                    action=action,
-                    employee_email=employee_email,
-                )
+            save_simulation_result(
+                full_name,
+                account_identifier,
+                verification_value,
+                id,
+                campaign=campaign.scenario,
+                action=action,
+                employee_email=employee_email,
             )
-            db.session.commit()
 
-            campaign_results = Result.query.filter_by(campaign_id=id).all()
+            campaign_results = fetch_results_by_campaign(id)
             if len(campaign_results) >= 5:
                 generate_campaign_report(
                     campaign=campaign,
@@ -708,26 +828,17 @@ def report():
     if not campaign_id:
         return redirect("/employee")
 
-    campaign_obj = Campaign.query.get(campaign_id)
+    campaign_obj = get_campaign_by_id(campaign_id)
     if not campaign_obj:
         return redirect("/employee")
 
     # Reject duplicate submissions so each employee can complete each campaign only once.
-    existing_result = Result.query.filter_by(employee_email=employee_email, campaign_id=campaign_id).first()
-    if existing_result:
+    if has_result_for_employee_campaign(employee_email, campaign_id):
         return redirect("/employee?message=already-completed")
 
-    db.session.add(
-        Result(
-            campaign=campaign_obj.scenario,
-            campaign_id=campaign_id,
-            action=action,
-            employee_email=employee_email,
-        )
-    )
-    db.session.commit()
+    save_employee_action_result(campaign_obj.scenario, campaign_id, action, employee_email)
 
-    campaign_results = Result.query.filter_by(campaign_id=campaign_id).all()
+    campaign_results = fetch_results_by_campaign(campaign_id)
     if len(campaign_results) >= 5:
         generate_campaign_report(
             campaign=campaign_obj,
@@ -749,5 +860,4 @@ def awareness():
 
 #run app
 if __name__ == "__main__":
-    initialize_database()
     app.run(debug=True)
