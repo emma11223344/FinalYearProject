@@ -1,3 +1,4 @@
+import os
 from types import SimpleNamespace
 from flask import Flask, render_template
 from firebase_admin import firestore
@@ -160,12 +161,56 @@ def delete_campaign_record(campaign_id): # delete a campaign record from Firesto
     doc.reference.delete()
     return True
 
-app = Flask(__name__)  
+app = Flask(__name__, template_folder="templates", static_folder="static")
 
 #routes
 @app.route("/")
 def home():
     return render_template("index.html")
+
+@app.route("/admin")
+def admin():
+    return render_template("admin.html")
+
+@app.route("/awareness")
+def awareness():
+    return render_template("awareness.html")
+
+@app.route("/campaign")
+def campaign():
+    return render_template("campaign.html")
+
+@app.route("/create_account")
+def create_account():
+    return render_template("create_account.html")
+
+@app.route("/create_campaign")
+def create_campaign():
+    return render_template("create_campaign.html")
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/employee")
+def employee():
+    return render_template("employee.html")
+
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+@app.route("/results")
+def results():
+    return render_template("results.html")
+
+@app.route("/simulate")
+def simulate():
+    return render_template("simulate.html")
+
+@app.route("/simulation_link_form")
+def simulation_link_form():
+    return render_template("simulation_link_form.html")
 
 #bind to Render's PORT environment variable
 if __name__ == "__main__":
