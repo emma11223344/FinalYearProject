@@ -73,6 +73,20 @@
         color: #334155;
     }
 
+    .timer-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0 0 14px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid #fca5a5;
+        background: #fff1f2;
+        color: #9f1239;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
     .field {
         margin-bottom: 12px;
     }
@@ -154,6 +168,8 @@
             Destination: <strong>{{ simulation.link }}</strong>
         </p>
 
+        <p class="timer-pill">Time left: <span id="countdown" data-seconds="{{ timer_seconds|int }}">01:00</span></p>
+
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}
@@ -179,5 +195,31 @@
                 <a class="btn btn-back" href="/simulate/{{ campaign.id }}">Back to Email</a>
             </div>
         </form>
+
+        <form id="timeout-form" method="post" action="/simulate/{{ campaign.id }}/timeout"></form>
     </div>
 </div>
+
+<script>
+const countdownElement = document.getElementById("countdown");
+const timeoutForm = document.getElementById("timeout-form");
+let remaining = Number(countdownElement.dataset.seconds || 0);
+
+function renderCountdown(totalSeconds) {
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+    countdownElement.textContent = `${minutes}:${seconds}`;
+}
+
+renderCountdown(remaining);
+const intervalId = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+        clearInterval(intervalId);
+        renderCountdown(0);
+        timeoutForm.submit();
+        return;
+    }
+    renderCountdown(remaining);
+}, 1000);
+</script>

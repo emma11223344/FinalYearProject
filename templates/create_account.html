@@ -210,12 +210,12 @@ body {
 
 <div class="field">
 <label for="password">Password</label>
-<input type="password" id="password" name="password" minlength="6" required>
+<input type="password" id="password" name="password" minlength="8" required>
 </div>
 
 <div class="field">
 <label for="confirm_password">Confirm Password</label>
-<input type="password" id="confirm_password" name="confirm_password" minlength="6" required>
+<input type="password" id="confirm_password" name="confirm_password" minlength="8" required>
 </div>
 
 <button type="submit" class="btn" onclick="this.innerText='Creating account...'">
@@ -223,6 +223,10 @@ Create Account
 </button>
 
 </form>
+
+<p class="hint">
+Use 8+ characters with uppercase, lowercase, a number, and a symbol.
+</p>
 
 <p class="hint">
 Already have an account? <a href="/login/employee">Log in here</a>
