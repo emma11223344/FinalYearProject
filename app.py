@@ -158,3 +158,15 @@ def delete_campaign_record(campaign_id): # delete a campaign record from Firesto
         return False
     doc.reference.delete()
     return True
+
+app = Flask(__name__)  
+
+#your existing routes
+@app.route("/")
+def home():
+    return "Hello, Phishing Simulator!"
+
+#bind to Render's PORT environment variable
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
