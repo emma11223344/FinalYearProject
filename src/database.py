@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 from firebase_admin import firestore
 import firebase_config  # ensures Firebase is initialized before we use Firestore
+firestore_db = firestore.client()  # makes firestore_db importable from other modules like auth.py
 
 # to get Firestore client
 def get_firestore_db():
