@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from flask import Flask
+from flask import Flask, render_template
 from firebase_admin import firestore
 import firebase_config  # ensures Firebase is initialized before we use Firestore
 
@@ -165,7 +165,7 @@ app = Flask(__name__)
 #routes
 @app.route("/")
 def home():
-    return "Hello, Phishing Simulator!"
+    return render_template("index.html")
 
 #bind to Render's PORT environment variable
 if __name__ == "__main__":
