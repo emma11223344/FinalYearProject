@@ -186,6 +186,32 @@
         filter: brightness(0.95);
     }
 
+    .decision-feedback { /*feedback message shown after employee makes a decision, styled to indicate correctness and provide educational feedback on red flags in phishing emails*/*/
+        width: 100%;
+        margin: 12px 0 0;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        padding: 10px 12px;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .decision-feedback.hidden {
+        display: none;
+    }
+
+    .decision-feedback.correct {
+        background: #ecfdf5;
+        border-color: #86efac;
+        color: #166534;
+    }
+
+    .decision-feedback.incorrect {
+        background: #fff7ed;
+        border-color: #fdba74;
+        color: #9a3412;
+    }
+
     @media (max-width: 720px) {
         .meta-grid {
             grid-template-columns: 1fr;
@@ -240,7 +266,7 @@
         {% endif %}
     </div>
 
-    <form method="post" action="/report" class="actions"> <!--form to submit the employee action after simulating the phishing scenario sends the campaign name and action taken to the server-->
+    <form method="post" action="/report" class="actions" id="decision-form" data-is-phishing="{% if simulation.red_flags %}1{% else %}0{% endif %}"> <!--form to submit the employee action after simulating the phishing scenario sends the campaign name and action taken to the server-->
        <!--Hidden field for campaign ID-->
         <input type="hidden" name="campaign_id" value="{{ campaign.id }}">
 
@@ -255,6 +281,8 @@
         <button class="btn btn-ignore" name="action" value="Ignored">
             Ignore Email
         </button>
+
+        <div id="decision-feedback" class="decision-feedback hidden" aria-live="polite"></div>
     </form>
 
     <form id="timeout-form" method="post" action="/simulate/{{ campaign.id }}/timeout"></form>
@@ -263,6 +291,8 @@
 <script>
 const countdownElement = document.getElementById("countdown");
 const timeoutForm = document.getElementById("timeout-form");
+const decisionForm = document.getElementById("decision-form");
+const decisionFeedback = document.getElementById("decision-feedback");
 let remaining = Number(countdownElement.dataset.seconds || 0);
 
 function renderCountdown(totalSeconds) {
@@ -282,4 +312,51 @@ const intervalId = setInterval(() => {
     }
     renderCountdown(remaining);
 }, 1000);
+
+decisionForm.addEventListener("submit", (event) => {
+    const action = event.submitter ? event.submitter.value : "";
+    if (!action) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const isPhishing = decisionForm.dataset.isPhishing === "1";
+    const userSaidPhishing = action === "Reported";
+    const isCorrect = (isPhishing && userSaidPhishing) || (!isPhishing && !userSaidPhishing);
+    const redFlags = Array.from(document.querySelectorAll(".flags li")).map((item) => item.textContent.trim()).filter(Boolean);
+
+    decisionFeedback.classList.remove("hidden", "correct", "incorrect");
+    if (isCorrect) {
+        decisionFeedback.classList.add("correct");
+        decisionFeedback.textContent = "Correct. Your choice matches this simulation email type.";
+    } else {
+        decisionFeedback.classList.add("incorrect");
+        if (isPhishing && redFlags.length) {
+            decisionFeedback.textContent = "Not quite. This email was phishing. Signs to look for: " + redFlags.join("; ");
+        } else if (isPhishing) {
+            decisionFeedback.textContent = "Not quite. This email was phishing. Look for urgency, unusual sender details, and suspicious links.";
+        } else {
+            decisionFeedback.textContent = "Not quite. This simulation email was legitimate in this scenario.";
+        }
+    }
+
+    let actionInput = decisionForm.querySelector("input[type='hidden'][name='action']");
+    if (!actionInput) {
+        actionInput = document.createElement("input");
+        actionInput.type = "hidden";
+        actionInput.name = "action";
+        decisionForm.appendChild(actionInput);
+    }
+    actionInput.value = action;
+
+    const buttons = decisionForm.querySelectorAll("button[name='action']");
+    buttons.forEach((button) => {
+        button.disabled = true;
+    });
+
+    setTimeout(() => {
+        decisionForm.submit();
+    }, 1800);
+});
 </script>
