@@ -1,10 +1,38 @@
 from types import SimpleNamespace
-
 from firebase_admin import firestore
+import firebase_config  # ensures Firebase is initialized before we use Firestore
 
-firestore_db = firestore.client()
+# to get Firestore client
+def get_firestore_db():
+    """Return Firestore client. App must be initialized via firebase_config."""
+    return firestore.client()
 
+# result
+def _result_from_doc(doc):
+    payload = doc.to_dict() or {}
+    return SimpleNamespace(
+        id=doc.id,
+        campaign=payload.get("campaign", ""),  # store campaign name in result for easier reporting without needing to join with campaign collection
+        campaign_id=payload.get("campaign_id"),
+        action=payload.get("action", ""),
+        employee_email=payload.get("employee_email"),
+        full_name=payload.get("full_name"),
+        account_identifier=payload.get("account_identifier"),
+        verification_value=payload.get("verification_value"),
+        created_at=payload.get("created_at"),
+    )
 
+# campaign
+def _campaign_from_doc(doc):
+    payload = doc.to_dict() or {}
+    return SimpleNamespace(
+        id=payload.get("campaign_id"),  # store campaign_id as id for easier referencing in results
+        scenario=payload.get("scenario", ""),
+        created_at=payload.get("created_at"),  # store created_at for sorting campaigns by creation date in admin view
+        firestore_doc_id=doc.id,
+    )
+
+# simulation result functions
 def save_simulation_result(
     full_name,
     account_identifier,
@@ -16,6 +44,7 @@ def save_simulation_result(
     logger=None,
     testing=False,
 ):
+    firestore_db = get_firestore_db()
     payload = {
         "full_name": full_name,
         "account_identifier": account_identifier,
@@ -23,7 +52,6 @@ def save_simulation_result(
         "campaign_id": campaign_id,
         "created_at": firestore.SERVER_TIMESTAMP,
     }
-
     if campaign is not None:
         payload["campaign"] = campaign
     if action is not None:
@@ -37,8 +65,9 @@ def save_simulation_result(
         if logger and not testing:
             logger.warning("Failed to save simulation_result to Firestore: %s", exc)
 
-
-def save_employee_action_result(campaign, campaign_id, action, employee_email, logger=None, testing=False):
+def save_employee_action_result(campaign, campaign_id, action, employee_email, logger=None, testing=False):   
+    # this function is used to save the result of an employee's action during a phishing simulation
+    firestore_db = get_firestore_db()
     payload = {
         "campaign": campaign,
         "campaign_id": campaign_id,
@@ -46,49 +75,37 @@ def save_employee_action_result(campaign, campaign_id, action, employee_email, l
         "employee_email": employee_email,
         "created_at": firestore.SERVER_TIMESTAMP,
     }
-
     try:
         firestore_db.collection("simulation_results").add(payload)
     except Exception as exc:
         if logger and not testing:
             logger.warning("Failed to save employee action to Firestore: %s", exc)
 
-
-def _result_from_doc(doc):
-    payload = doc.to_dict() or {}
-    return SimpleNamespace(
-        id=doc.id,
-        campaign=payload.get("campaign", ""),
-        campaign_id=payload.get("campaign_id"),
-        action=payload.get("action", ""),
-        employee_email=payload.get("employee_email"),
-        full_name=payload.get("full_name"),
-        account_identifier=payload.get("account_identifier"),
-        verification_value=payload.get("verification_value"),
-        created_at=payload.get("created_at"),
-    )
-
-
-def fetch_all_simulation_results():
+def fetch_all_simulation_results():  
+    # fetch all simulation results from Firestore, used to display results in the admin interface and for reporting purposes
+    firestore_db = get_firestore_db()
     docs = firestore_db.collection("simulation_results").stream()
     results = [_result_from_doc(doc) for doc in docs]
     results.sort(key=lambda r: ((r.created_at is not None), r.created_at or ""), reverse=True)
     return results
 
-
-def fetch_results_by_campaign(campaign_id):
+def fetch_results_by_campaign(campaign_id): 
+    # fetch all simulation results for a specific campaign based on the campaign_id, used to display results for a particular phishing simulation campaign in the admin interface
+    firestore_db = get_firestore_db()
     docs = firestore_db.collection("simulation_results").where("campaign_id", "==", campaign_id).stream()
     results = [_result_from_doc(doc) for doc in docs]
     results.sort(key=lambda r: ((r.created_at is not None), r.created_at or ""), reverse=True)
     return results
 
-
-def fetch_results_by_employee(employee_email):
+def fetch_results_by_employee(employee_email): 
+    # fetch all simulation results for a specific employee based on their email address
+    firestore_db = get_firestore_db()
     docs = firestore_db.collection("simulation_results").where("employee_email", "==", employee_email).stream()
     return [_result_from_doc(doc) for doc in docs]
 
-
-def has_result_for_employee_campaign(employee_email, campaign_id):
+def has_result_for_employee_campaign(employee_email, campaign_id): 
+    # check if there is already a simulation result for a specific employee and campaign combination, used to prevent duplicate entries when an employee completes the same campaign multiple times.
+    firestore_db = get_firestore_db()
     docs = (
         firestore_db.collection("simulation_results")
         .where("employee_email", "==", employee_email)
@@ -98,37 +115,29 @@ def has_result_for_employee_campaign(employee_email, campaign_id):
     )
     return next(docs, None) is not None
 
-
-def delete_results_by_campaign(campaign_id):
+def delete_results_by_campaign(campaign_id):  
+    # delete all simulation results associated with a specific campaign_id from Firestore, used when an admin deletes a campaign to ensure that all related results are also removed from the database
+    firestore_db = get_firestore_db()
     docs = firestore_db.collection("simulation_results").where("campaign_id", "==", campaign_id).stream()
     for doc in docs:
         doc.reference.delete()
 
-
-def _campaign_from_doc(doc):
-    payload = doc.to_dict() or {}
-    return SimpleNamespace(
-        id=payload.get("campaign_id"),
-        scenario=payload.get("scenario", ""),
-        created_at=payload.get("created_at"),
-        firestore_doc_id=doc.id,
-    )
-
-
+# campaign functions 
 def fetch_all_campaigns(descending=False):
+    firestore_db = get_firestore_db()
     docs = firestore_db.collection("campaigns").stream()
     campaigns = [_campaign_from_doc(doc) for doc in docs]
     campaigns.sort(key=lambda c: (c.id is not None, c.id or 0), reverse=descending)
     return campaigns
 
-
-def get_campaign_by_id(campaign_id):
+def get_campaign_by_id(campaign_id): 
+    # fetch a single campaign by its ID, returning None if not found
+    firestore_db = get_firestore_db()
     docs = firestore_db.collection("campaigns").where("campaign_id", "==", campaign_id).limit(1).stream()
     doc = next(docs, None)
     if not doc:
         return None
     return _campaign_from_doc(doc)
-
 
 def get_next_campaign_id():
     campaigns = fetch_all_campaigns(descending=True)
@@ -136,8 +145,10 @@ def get_next_campaign_id():
         return 1
     return (campaigns[0].id or 0) + 1
 
-
-def create_campaign_record(scenario):
+def create_campaign_record(scenario): 
+    # create a new campaign record in Firestore with a unique campaign_id, the provided scenario name, and a timestamp for when it was created 
+    # function is used when an admin creates a new phishing simulation campaign, allowing us to track and manage campaigns effectively in the database
+    firestore_db = get_firestore_db()
     campaign_id = get_next_campaign_id()
     payload = {
         "campaign_id": campaign_id,
@@ -147,8 +158,10 @@ def create_campaign_record(scenario):
     firestore_db.collection("campaigns").add(payload)
     return campaign_id
 
-
-def delete_campaign_record(campaign_id):
+def delete_campaign_record(campaign_id): 
+    # delete a campaign record from Firestore based on the provided campaign_id. 
+    # this function is used when an admin deletes a phishing simulation campaign, ensuring that the campaign is removed from the database 
+    firestore_db = get_firestore_db()
     docs = firestore_db.collection("campaigns").where("campaign_id", "==", campaign_id).limit(1).stream()
     doc = next(docs, None)
     if not doc:
