@@ -1,9 +1,6 @@
 from types import SimpleNamespace
 from firebase_admin import firestore
-from flask import Flask
-from src.auth import authenticate_user, register_user
 import firebase_config  # ensures Firebase is initialized before we use Firestore
-import os  # for Render port binding
 
 # Firestore client
 firestore_db = firestore.client()  # makes firestore_db importable from other modules like auth.py
@@ -161,16 +158,3 @@ def delete_campaign_record(campaign_id): # delete a campaign record from Firesto
         return False
     doc.reference.delete()
     return True
-
-
-app = Flask(__name__)  # this is the object Gunicorn looks for
-
-# your existing routes, keep all comments
-@app.route("/")
-def home():
-    return "Hello, Phishing Simulator!"
-
-# bind to Render's PORT environment variable
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
