@@ -9,7 +9,7 @@ from src.auth import authenticate_user, register_user
 from src.validation import is_valid_email as validate_email, is_strong_password as validate_password
 
 #firebase
-import firebase_config
+from firebase_config import db
 
 
 app = Flask(__name__)
@@ -24,7 +24,8 @@ def is_valid_email(email):
 def is_strong_password(password):
     return validate_password(password)
 
-
+#this function is used to save the result of a phishing simulation, including the employee's name, account identifier, verification value, campaign ID, and optionally the campaign name, action taken, and employee email the result is stored in the "simulation_results" collection in Firestore with a timestamp
+#it also logs any errors that occur during saving if a logger is provided and not in testing mode
 def save_simulation_result(
     full_name,
     account_identifier,
@@ -46,8 +47,7 @@ def save_simulation_result(
         testing=app.config.get("TESTING", False),
     )
 
-
-def save_employee_action_result(campaign, campaign_id, action, employee_email):
+def save_employee_action_result(campaign, campaign_id, action, employee_email):#this function is used to save the result of an employee's action during a phishing simulation, including the campaign name, campaign ID, action taken, and employee email
     return database_service.save_employee_action_result(
         campaign=campaign,
         campaign_id=campaign_id,
