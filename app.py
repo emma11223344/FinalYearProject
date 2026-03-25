@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from flask import Flask
 from firebase_admin import firestore
 import firebase_config  # ensures Firebase is initialized before we use Firestore
 
@@ -161,7 +162,7 @@ def delete_campaign_record(campaign_id): # delete a campaign record from Firesto
 
 app = Flask(__name__)  
 
-#your existing routes
+#routes
 @app.route("/")
 def home():
     return "Hello, Phishing Simulator!"
