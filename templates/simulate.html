@@ -78,6 +78,19 @@
         margin-bottom: 8px;
     }
 
+    .timer-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid #fca5a5;
+        background: #fff1f2;
+        color: #9f1239;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
     .meta {
         margin: 0 0 10px;
     }
@@ -193,6 +206,7 @@
         <!-- This section renders scenario-specific message content prepared in app.py. -->
         <div class="header-row">
             <p class="meta"><strong>Scenario:</strong> {{ campaign.scenario }}</p>
+            <p class="timer-pill">Time left: <span id="countdown" data-seconds="{{ timer_seconds|int }}">01:00</span></p>
         </div>
         <div class="meta-grid">
             <p><strong>From:</strong> {{ simulation.sender }}</p>
@@ -242,4 +256,30 @@
             Ignore Email
         </button>
     </form>
+
+    <form id="timeout-form" method="post" action="/simulate/{{ campaign.id }}/timeout"></form>
 </div>
+
+<script>
+const countdownElement = document.getElementById("countdown");
+const timeoutForm = document.getElementById("timeout-form");
+let remaining = Number(countdownElement.dataset.seconds || 0);
+
+function renderCountdown(totalSeconds) {
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+    countdownElement.textContent = `${minutes}:${seconds}`;
+}
+
+renderCountdown(remaining);
+const intervalId = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+        clearInterval(intervalId);
+        renderCountdown(0);
+        timeoutForm.submit();
+        return;
+    }
+    renderCountdown(remaining);
+}, 1000);
+</script>

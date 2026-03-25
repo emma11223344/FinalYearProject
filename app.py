@@ -2,29 +2,27 @@ from flask import Flask, render_template, request, redirect, session
 from modules.report_generator import generate_campaign_report
 from collections import Counter
 from types import SimpleNamespace
-from werkzeug.security import generate_password_hash, check_password_hash
+import time
+from src import database as database_service
+from src import phishingSimulation as phishing_simulation_service
+from src.auth import authenticate_user, register_user
+from src.validation import is_valid_email as validate_email, is_strong_password as validate_password
 
 #firebase
-from firebase_admin import auth, firestore
 import firebase_config
 
 
 app = Flask(__name__)
 #set secret key for session management
 app.secret_key = "secret-key"
-# Firestore is used for profile metadata (role + password hash) while Firebase Auth stores identity records.
-firestore_db = firestore.client()
 
-LEGITIMATE_SCENARIOS = {
-    "Team Lunch Invite",
-    "IT Maintenance Notice",
-    "Quarterly Town Hall",
-    "Training Reminder",
-    "Security Patch Advisory",
-    "Facilities Access Notice",
-    "Project Kickoff Invite",
-    "Payroll Schedule Update",
-}
+
+def is_valid_email(email):
+    return validate_email(email)
+
+
+def is_strong_password(password):
+    return validate_password(password)
 
 
 def save_simulation_result(
@@ -36,44 +34,28 @@ def save_simulation_result(
     action=None,
     employee_email=None,
 ):
-    """Store detailed simulation form submissions in Firestore."""
-    payload = {
-        "full_name": full_name,
-        "account_identifier": account_identifier,
-        "verification_value": verification_value,
-        "campaign_id": campaign_id,
-        "created_at": firestore.SERVER_TIMESTAMP,
-    }
-
-    if campaign is not None:
-        payload["campaign"] = campaign
-    if action is not None:
-        payload["action"] = action
-    if employee_email is not None:
-        payload["employee_email"] = employee_email
-
-    try:
-        firestore_db.collection("simulation_results").add(payload)
-    except Exception as exc:
-        # Keep the simulation flow functional even if Firestore write fails temporarily.
-        if not app.config.get("TESTING"):
-            app.logger.warning("Failed to save simulation_result to Firestore: %s", exc)
+    return database_service.save_simulation_result(
+        full_name=full_name,
+        account_identifier=account_identifier,
+        verification_value=verification_value,
+        campaign_id=campaign_id,
+        campaign=campaign,
+        action=action,
+        employee_email=employee_email,
+        logger=app.logger,
+        testing=app.config.get("TESTING", False),
+    )
 
 
 def save_employee_action_result(campaign, campaign_id, action, employee_email):
-    payload = {
-        "campaign": campaign,
-        "campaign_id": campaign_id,
-        "action": action,
-        "employee_email": employee_email,
-        "created_at": firestore.SERVER_TIMESTAMP,
-    }
-
-    try:
-        firestore_db.collection("simulation_results").add(payload)
-    except Exception as exc:
-        if not app.config.get("TESTING"):
-            app.logger.warning("Failed to save employee action to Firestore: %s", exc)
+    return database_service.save_employee_action_result(
+        campaign=campaign,
+        campaign_id=campaign_id,
+        action=action,
+        employee_email=employee_email,
+        logger=app.logger,
+        testing=app.config.get("TESTING", False),
+    )
 
 
 def _result_from_doc(doc):
@@ -92,53 +74,70 @@ def _result_from_doc(doc):
 
 
 def fetch_all_simulation_results():
-    docs = firestore_db.collection("simulation_results").stream()
-    results = [_result_from_doc(doc) for doc in docs]
-    results.sort(key=lambda r: ((r.created_at is not None), r.created_at or ""), reverse=True)
-    return results
+    return database_service.fetch_all_simulation_results()
 
 
 def fetch_results_by_campaign(campaign_id):
-    docs = firestore_db.collection("simulation_results").where("campaign_id", "==", campaign_id).stream()
-    results = [_result_from_doc(doc) for doc in docs]
-    results.sort(key=lambda r: ((r.created_at is not None), r.created_at or ""), reverse=True)
-    return results
+    return database_service.fetch_results_by_campaign(campaign_id)
 
 
 def fetch_results_by_employee(employee_email):
-    docs = firestore_db.collection("simulation_results").where("employee_email", "==", employee_email).stream()
-    return [_result_from_doc(doc) for doc in docs]
+    return database_service.fetch_results_by_employee(employee_email)
 
 
 def has_result_for_employee_campaign(employee_email, campaign_id):
-    docs = (
-        firestore_db.collection("simulation_results")
-        .where("employee_email", "==", employee_email)
-        .where("campaign_id", "==", campaign_id)
-        .limit(1)
-        .stream()
-    )
-    return next(docs, None) is not None
+    return database_service.has_result_for_employee_campaign(employee_email, campaign_id)
 
 
 def delete_results_by_campaign(campaign_id):
-    docs = firestore_db.collection("simulation_results").where("campaign_id", "==", campaign_id).stream()
-    for doc in docs:
-        doc.reference.delete()
+    return database_service.delete_results_by_campaign(campaign_id)
 
 
 def annotate_action_status_for_admin(interaction):
-    scenario = interaction.campaign or ""
-    is_legitimate = scenario in LEGITIMATE_SCENARIOS
-    is_reported = interaction.action == "Reported"
-
-    interaction.simulation_type_label = "Not Phishing" if is_legitimate else "Phishing"
-    interaction.status_label = "Reported" if is_reported else "Unreported"
-    interaction.is_correct = (not is_legitimate) if is_reported else is_legitimate
-    interaction.status_class = "status-correct" if interaction.is_correct else "status-incorrect"
+    return phishing_simulation_service.annotate_action_status_for_admin(interaction)
 
 
 app.config["REPORTS_DIR"] = "instance/reports"
+app.config["SIMULATION_TIME_LIMIT_SECONDS"] = 60
+
+
+def _timer_key(campaign_id):
+    return f"simulation_started_at_{campaign_id}"
+
+
+def start_simulation_timer(campaign_id):
+    key = _timer_key(campaign_id)
+    if key not in session:
+        session[key] = int(time.time())
+
+
+def clear_simulation_timer(campaign_id):
+    session.pop(_timer_key(campaign_id), None)
+
+
+def get_simulation_seconds_remaining(campaign_id):
+    started_at = session.get(_timer_key(campaign_id))
+    if started_at is None:
+        return app.config["SIMULATION_TIME_LIMIT_SECONDS"]
+
+    elapsed = int(time.time()) - int(started_at)
+    return max(0, app.config["SIMULATION_TIME_LIMIT_SECONDS"] - elapsed)
+
+
+def _record_timeout_and_redirect(campaign, campaign_id, employee_email):
+    # Timeout is treated as an ignored simulation if nothing was submitted in time.
+    if not has_result_for_employee_campaign(employee_email, campaign_id):
+        save_employee_action_result(campaign.scenario, campaign_id, "Ignored", employee_email)
+        campaign_results = fetch_results_by_campaign(campaign_id)
+        if len(campaign_results) >= 5:
+            generate_campaign_report(
+                campaign=campaign,
+                results=campaign_results,
+                reports_dir=app.config.get("REPORTS_DIR", "instance/reports"),
+            )
+
+    clear_simulation_timer(campaign_id)
+    return redirect("/employee?message=timed-out")
 
 
 def _campaign_from_doc(doc):
@@ -152,45 +151,23 @@ def _campaign_from_doc(doc):
 
 
 def fetch_all_campaigns(descending=False):
-    docs = firestore_db.collection("campaigns").stream()
-    campaigns = [_campaign_from_doc(doc) for doc in docs]
-    campaigns.sort(key=lambda c: (c.id is not None, c.id or 0), reverse=descending)
-    return campaigns
+    return database_service.fetch_all_campaigns(descending=descending)
 
 
 def get_campaign_by_id(campaign_id):
-    docs = firestore_db.collection("campaigns").where("campaign_id", "==", campaign_id).limit(1).stream()
-    doc = next(docs, None)
-    if not doc:
-        return None
-    return _campaign_from_doc(doc)
+    return database_service.get_campaign_by_id(campaign_id)
 
 
 def get_next_campaign_id():
-    campaigns = fetch_all_campaigns(descending=True)
-    if not campaigns:
-        return 1
-    return (campaigns[0].id or 0) + 1
+    return database_service.get_next_campaign_id()
 
 
 def create_campaign_record(scenario):
-    campaign_id = get_next_campaign_id()
-    payload = {
-        "campaign_id": campaign_id,
-        "scenario": scenario,
-        "created_at": firestore.SERVER_TIMESTAMP,
-    }
-    firestore_db.collection("campaigns").add(payload)
-    return campaign_id
+    return database_service.create_campaign_record(scenario)
 
 
 def delete_campaign_record(campaign_id):
-    docs = firestore_db.collection("campaigns").where("campaign_id", "==", campaign_id).limit(1).stream()
-    doc = next(docs, None)
-    if not doc:
-        return False
-    doc.reference.delete()
-    return True
+    return database_service.delete_campaign_record(campaign_id)
 
 #simulation builder with scenarios red flags, and risk levels for simulations
 def build_simulation_payload(scenario, recipient_email, recipient_name):
@@ -485,8 +462,7 @@ def build_simulation_payload(scenario, recipient_email, recipient_name):
 
 
 def simulation_requires_sensitive_input(simulation):
-    #mismatched destination links or flagged content as phishing-like interactions.
-    return simulation.get("display_link") != simulation.get("link") or bool(simulation.get("red_flags"))
+    return phishing_simulation_service.simulation_requires_sensitive_input(simulation)
 
 
 #home page
@@ -506,48 +482,18 @@ def login(role):
 
     # Handle login form submission and verify Firebase identity + Firestore profile.
     if request.method == "POST":
-        # Normalize email so lookups and stored profile keys stay consistent.
-        email = request.form["email"].strip().lower()
+        email = request.form["email"]
         password = request.form["password"]
+        auth_payload, error = authenticate_user(email, password, role)
 
-        try:
-            #check if the Firebase user exists first.
-            user = auth.get_user_by_email(email)
-            profile_doc = firestore_db.collection("users").document(user.uid).get()
-            # Every Firebase auth account must have a matching Firestore profile document.
-            if not profile_doc.exists:
-                error = "Account profile not found. Please contact support."
-                
-                return render_template("login.html", role=role, error=error)
+        if auth_payload:
+            session["user"] = auth_payload["uid"]
+            session["email"] = auth_payload["email"]
+            session["role"] = auth_payload["role"]
 
-            #read role and password hash used for role-aware login validation.
-            profile = profile_doc.to_dict() or {}
-            stored_password_hash = profile.get("password_hash", "")
-            stored_role = (profile.get("role") or "").strip().lower()
-
-            #validate password against the stored hash written during account creation.
-            if not stored_password_hash or not check_password_hash(stored_password_hash, password):
-                error = "Invalid email or password"
-                return render_template("login.html", role=role, error=error)
-
-            #prevent users from entering through the wrong role portal.
-            if stored_role != role:
-                error = f"This account is registered as {stored_role or 'unknown'}. Use the correct login page."
-                return render_template("login.html", role=role, error=error)
-
-            #role and identity in session for route access checks
-            session["user"] = user.uid
-            session["email"] = email
-            session["role"] = stored_role
-
-            #route user to the correct dashboard immediately after successful login
-            if stored_role == "admin":
+            if auth_payload["role"] == "admin":
                 return redirect("/admin")
-            else:
-                return redirect("/employee")
-        
-        except:
-            error = "Invalid email or password"
+            return redirect("/employee")
 
     return render_template("login.html", role=role, error=error)
 
@@ -561,37 +507,15 @@ def create_account():
 
     #explicit role selection and password
     if request.method == "POST":
-        email = request.form["email"].strip().lower()
+        email = request.form["email"]
         password = request.form["password"]
         confirm_password = request.form["confirm_password"]
         selected_role = request.form.get("role", "employee").strip().lower()
 
-        #validate role and password requirements before creating the Firebase account
-        if selected_role not in ("admin", "employee"):
-            error = "Please select a valid account role"
-        elif password != confirm_password:
-            error = "Passwords do not match"
-        elif len(password) < 6:
-            error = "Password must be at least 6 characters"
-        else:
-            try:
-                user = auth.create_user(email=email, password=password)
-                #store role + password firestore so login can enforce role and verify credential
-                firestore_db.collection("users").document(user.uid).set(
-                    {
-                        "email": email,
-                        "role": selected_role,
-                        "password_hash": generate_password_hash(password),
-                    }
-                )
-                
-                success = f"{selected_role.capitalize()} account created successfully. You can now log in."
-            except Exception as e:
-                message = str(e)
-                if "EMAIL_EXISTS" in message:
-                    error = "An account with this email already exists"
-                else:
-                    error = "Could not create account. Please try again."
+        created_role, error = register_user(email, password, confirm_password, selected_role)
+        if created_role:
+            selected_role = created_role
+            success = f"{created_role.capitalize()} account created successfully. You can now log in."
 
     return render_template(
         "create_account.html",
@@ -750,11 +674,21 @@ def simulate(id):
     if has_result_for_employee_campaign(employee_email, id):
         return redirect("/employee?message=already-completed")
 
+    start_simulation_timer(id)
+    seconds_remaining = get_simulation_seconds_remaining(id)
+    if seconds_remaining <= 0:
+        return _record_timeout_and_redirect(campaign, id, employee_email)
+
     employee_name = employee_email.split("@")[0].replace(".", " ").title() if employee_email else "Employee"
     simulation = build_simulation_payload(campaign.scenario, employee_email or "employee@company.com", employee_name)
     simulation["requires_sensitive_input"] = simulation_requires_sensitive_input(simulation)
 
-    return render_template("simulate.html", campaign=campaign, simulation=simulation)
+    return render_template(
+        "simulate.html",
+        campaign=campaign,
+        simulation=simulation,
+        timer_seconds=seconds_remaining,
+    )
 
 
 @app.route("/simulate/<int:id>/link", methods=["GET", "POST"])
@@ -770,6 +704,10 @@ def simulate_link_interaction(id):
 
     if has_result_for_employee_campaign(employee_email, id):
         return redirect("/employee?message=already-completed")
+
+    start_simulation_timer(id)
+    if get_simulation_seconds_remaining(id) <= 0:
+        return _record_timeout_and_redirect(campaign, id, employee_email)
 
     employee_name = employee_email.split("@")[0].replace(".", " ").title() if employee_email else "Employee"
     simulation = build_simulation_payload(campaign.scenario, employee_email or "employee@company.com", employee_name)
@@ -804,6 +742,7 @@ def simulate_link_interaction(id):
                     reports_dir=app.config.get("REPORTS_DIR", "instance/reports"),
                 )
 
+            clear_simulation_timer(id)
             return redirect("/employee?message=form-submitted")
 
     return render_template(
@@ -812,7 +751,21 @@ def simulate_link_interaction(id):
         simulation=simulation,
         is_phishing=is_phishing,
         error=error,
+        timer_seconds=get_simulation_seconds_remaining(id),
     )
+
+
+@app.route("/simulate/<int:id>/timeout", methods=["POST"])
+def simulation_timeout(id):
+    if session.get("role") != "employee":
+        return redirect("/login/employee")
+
+    employee_email = session.get("email", "")
+    campaign = get_campaign_by_id(id)
+    if not campaign:
+        return redirect("/employee")
+
+    return _record_timeout_and_redirect(campaign, id, employee_email)
 
 
 #report results
@@ -833,6 +786,9 @@ def report():
     if not campaign_obj:
         return redirect("/employee")
 
+    if get_simulation_seconds_remaining(campaign_id) <= 0:
+        return _record_timeout_and_redirect(campaign_obj, campaign_id, employee_email)
+
     # Reject duplicate submissions so each employee can complete each campaign only once.
     if has_result_for_employee_campaign(employee_email, campaign_id):
         return redirect("/employee?message=already-completed")
@@ -847,6 +803,7 @@ def report():
             reports_dir=app.config.get("REPORTS_DIR", "instance/reports"),
         )
 
+    clear_simulation_timer(campaign_id)
     return redirect("/employee")
 
 

@@ -136,6 +136,12 @@
         {% if message == "already-completed" %}
         <p class="message">You already completed this simulation.</p>
         {% endif %}
+        {% if message == "timed-out" %}
+        <p class="message">Simulation timed out after 1 minute. The result was recorded as Ignored.</p>
+        {% endif %}
+        {% if message == "form-submitted" %}
+        <p class="message">Simulation submitted successfully.</p>
+        {% endif %}
         <ul class="list">
         {% for c in campaigns %}
             <li>
