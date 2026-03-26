@@ -55,7 +55,7 @@ th { background: #eff6ff; color: #0f172a; }
         <h3 class="section-title">Campaigns:</h3>
         <ul class="list">
             {% for c in campaigns %}
-            <li><a href="/admin/campaign/{{ c.id }}">{{ c.scenario }}</a></li>
+            <li><a href="/campaign/{{ c.id }}">{{ c.scenario }}</a></li>
             {% else %}
             <li>No campaigns created yet.</li>
             {% endfor %}
@@ -68,7 +68,7 @@ th { background: #eff6ff; color: #0f172a; }
             <tr><th>Campaign</th><th>Action</th><th>Employee Email</th></tr>
             {% for r in data %}
             <tr>
-                <td>{{ r.campaign }}</td>
+                <td>{% if r.campaign_id %}<a href="/campaign/{{ r.campaign_id }}">{{ r.campaign }}</a>{% else %}{{ r.campaign }}{% endif %}</td>
                 <td>{{ r.action }}</td>
                 <td>{{ r.employee_email or '-' }}</td>
             </tr>
