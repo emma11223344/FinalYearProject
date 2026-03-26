@@ -5,7 +5,7 @@ from flask import Flask, redirect, render_template, request, session, url_for
 from firebase_admin import firestore
 
 import firebase_config
-from src.auth import authenticate_user
+from src.auth import authenticate_user, register_user
 
 firestore_db = firestore.client()  # use the Firestore client initialized in firebase_config.py for all database operations in this module
 
@@ -172,7 +172,6 @@ ROUTES = {
     "/": "index.html",
     "/awareness": "awareness.html",
     "/campaign": "create_campaign.html",
-    "/create_account": "create_account.html",
     "/create_campaign": "create_campaign.html",
     "/dashboard": "dashboard.html",
     "/results": "results.html",
@@ -715,9 +714,32 @@ def report_action():
 
 
 @app.route("/create-account", methods=["GET", "POST"])
+@app.route("/create_account", methods=["GET", "POST"])
 def create_account_alias():
-    # alias route to render create account page
-    return render_template("create_account.html", error=None, success=None, selected_role="employee")
+    # account creation route supports both kebab-case and underscore URLs
+    if request.method == "GET":
+        return render_template("create_account.html", error=None, success=None, selected_role="employee")
+
+    email = _normalize_email(request.form.get("email", ""))
+    password = request.form.get("password", "")
+    confirm_password = request.form.get("confirm_password", "")
+    selected_role = (request.form.get("role") or "employee").strip().lower()
+
+    role, error = register_user(email, password, confirm_password, selected_role)
+    if error:
+        return render_template(
+            "create_account.html",
+            error=error,
+            success=None,
+            selected_role=selected_role,
+        )
+
+    return render_template(
+        "create_account.html",
+        error=None,
+        success=f"{role.title()} account created successfully.",
+        selected_role="employee",
+    )
 
 
 @app.route("/logout")
