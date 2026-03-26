@@ -1,224 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishProof | Email Simulation</title>
 <style>
-    
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
-
-    :root {
-        --bg: #f6fbff;
-        --ink: #0f172a;
-        --line: #d9e2ec;
-        --card: #ffffff;
-        --brand-dark: #0f766e;
-        --muted: #64748b;
-    }
-
-    * {
-        box-sizing: border-box;
-    }
-
-    body {
-        margin: 0;
-        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-        color: var(--ink);
-        background:
-            radial-gradient(circle at 10% 10%, #dff8ff 0%, transparent 35%),
-            radial-gradient(circle at 90% 20%, #e8fff5 0%, transparent 32%),
-            linear-gradient(180deg, #eff8ff 0%, var(--bg) 38%, #ffffff 100%);
-    }
-
-    .page {
-        max-width: 900px;
-        margin: 32px auto;
-        padding: 0 20px 32px;
-    }
-
-    .title {
-        margin: 0 0 16px;
-        font-size: 34px;
-        font-family: "Space Grotesk", "Segoe UI", sans-serif;
-        text-align: center;
-        color: var(--ink);
-    }
-
-    .top-nav {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        margin-bottom: 24px;
-        padding: 12px 16px;
-        background: rgba(255, 255, 255, 0.86);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        backdrop-filter: blur(5px);
-    }
-
-    .top-nav a {
-        text-decoration: none;
-        color: var(--brand-dark);
-        font-weight: 700;
-    }
-
-    .top-nav a:hover {
-        text-decoration: underline;
-    }
-
-    .email-card {
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 24px;
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-    }
-
-    .header-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 8px;
-    }
-
-    .timer-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        border: 1px solid #fca5a5;
-        background: #fff1f2;
-        color: #9f1239;
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-    .meta {
-        margin: 0 0 10px;
-    }
-
-    .meta-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px 12px;
-        margin-bottom: 10px;
-    }
-
-    .meta-grid p {
-        margin: 0;
-        font-size: 14px;
-    }
-
-    .divider {
-        border: 0;
-        border-top: 1px solid #e5e7eb;
-        margin: 16px 0;
-    }
-
-    .link-look {
-        display: inline-block;
-        margin: 2px 0 4px;
-        color: var(--brand-dark);
-        text-decoration: underline;
-        font-weight: 600;
-        word-break: break-all;
-    }
-
-    .attachment {
-        margin: 8px 0;
-        padding: 10px 12px;
-        border: 1px solid #fde68a;
-        border-radius: 10px;
-        background: #fffbeb;
-        color: #92400e;
-        font-size: 14px;
-    }
-
-    .flags {
-        margin-top: 14px;
-        padding: 0;
-        list-style: none;
-        display: grid;
-        gap: 8px;
-    }
-
-    .flags li {
-        background: #fff1f2;
-        border: 1px solid #fecaca;
-        color: #991b1b;
-        border-radius: 10px;
-        padding: 9px 10px;
-        font-size: 13px;
-    }
-
-    .actions {
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        margin-top: 22px;
-        flex-wrap: wrap;
-    }
-
-    .btn {
-        border: 1px solid transparent;
-        border-radius: 8px;
-        padding: 10px 16px;
-        font-weight: 700;
-        font-size: 14px;
-        cursor: pointer;
-    }
-
-    .btn-click {
-        background: #dc2626;
-        color: #ffffff;
-    }
-
-    .btn-report {
-        background: #15803d;
-        color: #ffffff;
-    }
-
-    .btn-ignore {
-        background: #ffffff;
-        color: #374151;
-        border-color: #cbd5e1;
-    }
-
-    .btn:hover {
-        filter: brightness(0.95);
-    }
-
-    .decision-feedback { /*feedback message shown after employee makes a decision, styled to indicate correctness and provide educational feedback on red flags in phishing emails*/*/
-        width: 100%;
-        margin: 12px 0 0;
-        border-radius: 10px;
-        border: 1px solid transparent;
-        padding: 10px 12px;
-        font-size: 14px;
-        line-height: 1.45;
-    }
-
-    .decision-feedback.hidden {
-        display: none;
-    }
-
-    .decision-feedback.correct {
-        background: #ecfdf5;
-        border-color: #86efac;
-        color: #166534;
-    }
-
-    .decision-feedback.incorrect {
-        background: #fff7ed;
-        border-color: #fdba74;
-        color: #9a3412;
-    }
-
-    @media (max-width: 720px) {
-        .meta-grid {
-            grid-template-columns: 1fr;
-        }
-    }
+:root {
+  --bg: #f8fafc;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --brand-dark: #0f766e;
+  --brand: #14b8a6;
+  --card: #ffffff;
+  --line: #e2e8f0;
+}
+body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--ink); }
+.page { max-width: 900px; margin: 32px auto; padding: 0 20px 32px; }
+.title { margin: 0 0 16px; font-size: 34px; text-align: center; color: var(--ink); font-weight: 700; }
+.email-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+.top-nav { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 16px; }
+.top-nav a { text-decoration: none; color: #0f172a; font-weight: 600; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: #ffffff; }
+.top-nav a:hover { background: #f1f5f9; }
+.timer-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid #fca5a5; background: #fff1f2; color: #9f1239; font-size: 13px; font-weight: 700; }
+.meta { margin: 0 0 10px; }
+.meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; margin-bottom: 10px; }
+.meta-grid p { margin: 0; font-size: 14px; }
+.divider { border: 0; border-top: 1px solid #e5e7eb; margin: 16px 0; }
+.link-look { display: inline-block; margin: 2px 0 4px; color: var(--brand-dark); text-decoration: underline; font-weight: 600; word-break: break-all; }
+.attachment { margin: 8px 0; padding: 10px 12px; border: 1px solid #fde68a; border-radius: 10px; background: #fffbeb; color: #92400e; font-size: 14px; }
+.flags { margin-top: 14px; padding: 0; list-style: none; display: grid; gap: 8px; }
+.flags li { background: #fff1f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 10px; padding: 9px 10px; font-size: 13px; }
+.actions { display: flex; justify-content: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+.btn { border: 1px solid transparent; border-radius: 8px; padding: 10px 16px; font-weight: 700; font-size: 14px; cursor: pointer; transition: filter 180ms; }
+.btn-click { background: #dc2626; color: #ffffff; }
+.btn-report { background: #15803d; color: #ffffff; }
+.btn-ignore { background: #ffffff; color: #374151; border-color: #cbd5e1; }
+.btn:hover { filter: brightness(0.95); }
+.decision-feedback { width: 100%; margin: 12px 0 0; border-radius: 10px; border: 1px solid transparent; padding: 10px 12px; font-size: 14px; line-height: 1.45; }
+.decision-feedback.hidden { display: none; }
+.decision-feedback.correct { background: #ecfdf5; border-color: #86efac; color: #166534; }
+.decision-feedback.incorrect { background: #fff7ed; border-color: #fdba74; color: #9a3412; }
+@media (max-width: 720px) { .meta-grid { grid-template-columns: 1fr; } }
 </style>
-
+</head>
+<body>
 <div class="page">
     <h2 class="title">PhishProof | Email Inbox</h2>
 
@@ -229,7 +55,7 @@
     </nav>
 
     <div class="email-card">
-        <!-- This section renders scenario-specific message content prepared in app.py. -->
+        <!--renders scenario-specific message content prepared in app.py. -->
         <div class="header-row">
             <p class="meta"><strong>Scenario:</strong> {{ campaign.scenario }}</p>
             <p class="timer-pill">Time left: <span id="countdown" data-seconds="{{ timer_seconds|int }}">01:00</span></p>
@@ -249,26 +75,15 @@
 
         <a class="link-look" href="/simulate/{{ campaign.id }}/link">{{ simulation.display_link }}</a>
 
-        {% if simulation.attachment %}
-        <p class="attachment"><strong>Attachment:</strong> {{ simulation.attachment }}</p>
-        {% endif %}
-
         <p>{{ simulation.closing }}</p>
 
         <p>{{ simulation.signature }}</p>
-
-        {% if simulation.red_flags %}
-        <ul class="flags">
-            {% for flag in simulation.red_flags %}
-            <li>{{ flag }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
     </div>
 
     <form method="post" action="/report" class="actions" id="decision-form" data-is-phishing="{% if simulation.red_flags %}1{% else %}0{% endif %}"> <!--form to submit the employee action after simulating the phishing scenario sends the campaign name and action taken to the server-->
        <!--Hidden field for campaign ID-->
         <input type="hidden" name="campaign_id" value="{{ campaign.id }}">
+        <input type="hidden" name="employee_email" value="{{ simulation.recipient }}">
 
         <p style="width:100%;text-align:center;margin:0 0 4px;color:#334155;font-size:14px;">
             Use the email link above to open the destination portal and enter details.
@@ -285,7 +100,9 @@
         <div id="decision-feedback" class="decision-feedback hidden" aria-live="polite"></div>
     </form>
 
-    <form id="timeout-form" method="post" action="/simulate/{{ campaign.id }}/timeout"></form>
+    <form id="timeout-form" method="post" action="/simulate/{{ campaign.id }}/timeout">
+        <input type="hidden" name="employee_email" value="{{ simulation.recipient }}">
+    </form>
 </div>
 
 <script>
@@ -295,12 +112,12 @@ const decisionForm = document.getElementById("decision-form");
 const decisionFeedback = document.getElementById("decision-feedback");
 let remaining = Number(countdownElement.dataset.seconds || 0);
 
-function renderCountdown(totalSeconds) {
+function renderCountdown(totalSeconds) { //function to render the countdown timer
     const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
     const seconds = String(totalSeconds % 60).padStart(2, "0");
     countdownElement.textContent = `${minutes}:${seconds}`;
 }
-
+//initial render
 renderCountdown(remaining);
 const intervalId = setInterval(() => {
     remaining -= 1;
@@ -320,27 +137,26 @@ decisionForm.addEventListener("submit", (event) => {
     }
 
     event.preventDefault();
-
+//determine if the user's action is correct based on whether the email was actually phishing or not, and provide feedback accordingly
     const isPhishing = decisionForm.dataset.isPhishing === "1";
     const userSaidPhishing = action === "Reported";
     const isCorrect = (isPhishing && userSaidPhishing) || (!isPhishing && !userSaidPhishing);
-    const redFlags = Array.from(document.querySelectorAll(".flags li")).map((item) => item.textContent.trim()).filter(Boolean);
 
+    // Show feedback message based on correctness and email type
     decisionFeedback.classList.remove("hidden", "correct", "incorrect");
     if (isCorrect) {
         decisionFeedback.classList.add("correct");
         decisionFeedback.textContent = "Correct. Your choice matches this simulation email type.";
     } else {
         decisionFeedback.classList.add("incorrect");
-        if (isPhishing && redFlags.length) {
-            decisionFeedback.textContent = "Not quite. This email was phishing. Signs to look for: " + redFlags.join("; ");
-        } else if (isPhishing) {
+        if (isPhishing) {
             decisionFeedback.textContent = "Not quite. This email was phishing. Look for urgency, unusual sender details, and suspicious links.";
         } else {
             decisionFeedback.textContent = "Not quite. This simulation email was legitimate in this scenario.";
         }
     }
 
+    //disable buttons to prevent multiple submissions while showing feedback, then submit the form after a short delay to allow the user to read the feedback message
     let actionInput = decisionForm.querySelector("input[type='hidden'][name='action']");
     if (!actionInput) {
         actionInput = document.createElement("input");
@@ -354,9 +170,11 @@ decisionForm.addEventListener("submit", (event) => {
     buttons.forEach((button) => {
         button.disabled = true;
     });
-
+//submit the form after a short delay to allow the user to read the feedback message
     setTimeout(() => {
         decisionForm.submit();
     }, 1800);
 });
 </script>
+</body>
+</html>

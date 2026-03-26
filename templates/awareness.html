@@ -1,337 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishProof | Security Awareness</title>
 <style>
-    /* Global resets and base styles for consistent layout and typography*/
-    * {
-        box-sizing: border-box;
-    }
-
-    body {
-        margin: 0;
-        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-        color: var(--ink);
-        background:
-            radial-gradient(circle at 10% 10%, #dff8ff 0%, transparent 35%),
-            radial-gradient(circle at 90% 20%, #e8fff5 0%, transparent 32%),
-            linear-gradient(180deg, #eff8ff 0%, var(--bg) 38%, #ffffff 100%);
-        min-height: 100vh;
-    }
-
-    .page {
-        max-width: 1060px;
-        margin: 28px auto;
-        padding: 0 20px 40px;
-        animation: fade-in 500ms ease;
-    }
-
-    .hero {
-        border-radius: 18px;
-        padding: 26px 24px;
-        color: #ecfeff;
-        background:
-            linear-gradient(125deg, #083344 0%, #0f766e 44%, #14b8a6 100%);
-        box-shadow: 0 12px 28px rgba(8, 51, 68, 0.24);
-        margin-bottom: 20px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .hero::after {
-        content: "";
-        position: absolute;
-        top: -50px;
-        right: -50px;
-        width: 180px;
-        height: 180px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.12);
-    }
-
-    .title {
-        margin: 0 0 8px;
-        font-family: "Space Grotesk", "Segoe UI", sans-serif;
-        font-size: 35px;
-        line-height: 1.15;
-    }
-
-    .subtitle {
-        margin: 0;
-        max-width: 760px;
-        color: #d1fae5;
-        line-height: 1.6;
-    }
-
-    .top-nav {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 18px;
-        margin: 0 0 20px;
-        padding: 12px 16px;
-        background: rgba(255, 255, 255, 0.86);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        backdrop-filter: blur(5px);
-    }
-
-    .top-nav a {
-        text-decoration: none;
-        color: var(--brand-dark);
-        font-weight: 700;
-    }
-
-    .top-nav a:hover {
-        text-decoration: underline;
-    }
-
-    .grid {
-        display: grid;
-        gap: 16px;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-    }
-
-    .card {
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 20px;
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-        animation: rise 450ms ease both;
-    }
-
-    .card h3 {
-        margin: 0 0 12px;
-        font-family: "Space Grotesk", "Segoe UI", sans-serif;
-        font-size: 22px;
-    }
-
-    .span-8 {
-        grid-column: span 8;
-    }
-
-    .span-4 {
-        grid-column: span 4;
-    }
-
-    .span-12 {
-        grid-column: span 12;
-    }
-
-    .tips {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        display: grid;
-        gap: 10px;
-    }
-
-    .tips li {
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
-        border-left: 4px solid var(--brand);
-        border-radius: 10px;
-        padding: 11px 12px;
-    }
-
-    .stats {
-        display: grid;
-        gap: 10px;
-    }
-
-    .stat {
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 12px;
-    }
-
-    .stat .num {
-        font-size: 28px;
-        font-family: "Space Grotesk", "Segoe UI", sans-serif;
-        font-weight: 700;
-        color: var(--brand-dark);
-        line-height: 1;
-    }
-
-    .stat .label {
-        color: var(--muted);
-        font-size: 13px;
-    }
-
-    .redflags {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        padding: 0;
-        list-style: none;
-        margin: 0;
-    }
-
-    .redflags li {
-        border: 1px solid #fecaca;
-        background: #fff1f2;
-        color: #991b1b;
-        border-radius: 10px;
-        padding: 12px;
-    }
-
-    .checklist-wrap {
-        grid-column: span 12;
-    }
-
-    .progress {
-        width: 100%;
-        height: 10px;
-        border-radius: 999px;
-        background: #e5e7eb;
-        overflow: hidden;
-        margin: 10px 0 14px;
-    }
-
-    .progress > div {
-        width: 0%;
-        height: 100%;
-        background: linear-gradient(90deg, #14b8a6 0%, #0ea5e9 100%);
-        transition: width 240ms ease;
-    }
-
-    .checklist {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: grid;
-        gap: 8px;
-    }
-
-    .checklist li {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 9px 12px;
-    }
-
-    .checklist input {
-        accent-color: var(--brand-dark);
-        width: 16px;
-        height: 16px;
-    }
-
-    details {
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 10px 12px;
-        background: #ffffff;
-    }
-
-    details + details {
-        margin-top: 10px;
-    }
-
-    summary {
-        cursor: pointer;
-        font-weight: 700;
-        color: #1f2937;
-    }
-
-    .q {
-        margin-top: 10px;
-        color: var(--muted);
-        line-height: 1.6;
-    }
-
-    .footer-note {
-        margin-top: 16px;
-        color: #6b7280;
-        font-size: 14px;
-        text-align: center;
-    }
-
-    .steps {
-        margin: 0;
-        padding-left: 20px;
-        line-height: 1.8;
-    }
-
-    .steps li {
-        margin-bottom: 8px;
-    }
-
-    .quiz {
-        display: grid;
-        gap: 12px;
-    }
-
-    .quiz-item {
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        background: #f8fafc;
-        padding: 12px;
-    }
-
-    .quiz-item p {
-        margin: 0 0 8px;
-        font-weight: 700;
-    }
-
-    .quiz-item label {
-        display: block;
-        margin-bottom: 6px;
-        color: #334155;
-    }
-
-    .quiz-btn {
-        border: 0;
-        border-radius: 8px;
-        background: #0f766e;
-        color: #ffffff;
-        font-weight: 700;
-        padding: 10px 14px;
-        cursor: pointer;
-        width: fit-content;
-    }
-
-    .quiz-result {
-        margin: 0;
-        color: #0f172a;
-        font-weight: 700;
-    }
-
-    @keyframes fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    @keyframes rise {
-        from {
-            opacity: 0;
-            transform: translateY(8px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (max-width: 860px) {
-        .span-8,
-        .span-4,
-        .checklist-wrap {
-            grid-column: span 12;
-        }
-
-        .redflags {
-            grid-template-columns: 1fr;
-        }
-
-        .title {
-            font-size: 30px;
-        }
-    }
+:root {
+  --bg: #f8fafc;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --brand-dark: #0f766e;
+  --brand: #14b8a6;
+  --card: #ffffff;
+  --line: #e2e8f0;
+}
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+}
+.page { max-width: 1060px; margin: 28px auto; padding: 0 20px 40px; animation: fade-in 500ms ease; }
+.hero { border-radius: 18px; padding: 26px 24px; color: #ecfeff; background: linear-gradient(125deg, #083344 0%, #0f766e 44%, #14b8a6 100%); box-shadow: 0 12px 28px rgba(8, 51, 68, 0.24); margin-bottom: 20px; position: relative; overflow: hidden; }
+.hero::after { content: ""; position: absolute; top: -50px; right: -50px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255, 255, 255, 0.12); }
+.title { margin: 0 0 8px; font-size: 35px; line-height: 1.15; font-weight: 700; }
+.subtitle { margin: 0; max-width: 760px; color: #d1fae5; line-height: 1.6; }
+.top-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 16px;
+}
+.top-nav a {
+    text-decoration: none;
+    color: #0f172a;
+    font-weight: 600;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #ffffff;
+}
+.top-nav a:hover { background: #f1f5f9; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); animation: rise 450ms ease both; }
+.card h3 { margin: 0 0 12px; font-size: 22px; font-weight: 700; }
+.span-8 { grid-column: span 8; }
+.span-4 { grid-column: span 4; }
+.span-12 { grid-column: span 12; }
+.tips { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.tips li { background: #f8fafc; border: 1px solid #e5e7eb; border-left: 4px solid var(--brand); border-radius: 10px; padding: 11px 12px; }
+.stats { display: grid; gap: 10px; }
+.stat { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; }
+.stat .num { font-size: 28px; font-weight: 700; color: var(--brand-dark); line-height: 1; }
+.stat .label { color: var(--muted); font-size: 13px; }
+.redflags { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0; list-style: none; margin: 0; }
+.redflags li { border: 1px solid #fecaca; background: #fff1f2; color: #991b1b; border-radius: 10px; padding: 12px; }
+.checklist-wrap { grid-column: span 12; }
+.progress { width: 100%; height: 10px; border-radius: 999px; background: #e5e7eb; overflow: hidden; margin: 10px 0 14px; }
+.progress > div { width: 0%; height: 100%; background: linear-gradient(90deg, #14b8a6 0%, #0ea5e9 100%); transition: width 240ms ease; }
+.checklist { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.checklist li { display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 9px 12px; }
+.checklist input { accent-color: var(--brand-dark); width: 16px; height: 16px; }
+details { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #ffffff; }
+details + details { margin-top: 10px; }
+summary { cursor: pointer; font-weight: 700; color: #1f2937; }
+.q { margin-top: 10px; color: var(--muted); line-height: 1.6; }
+.footer-note { margin-top: 16px; color: #6b7280; font-size: 14px; text-align: center; }
+.steps { margin: 0; padding-left: 20px; line-height: 1.8; }
+.steps li { margin-bottom: 8px; }
+.quiz { display: grid; gap: 12px; }
+.quiz-item { border: 1px solid #e5e7eb; border-radius: 10px; background: #f8fafc; padding: 12px; }
+.quiz-item p { margin: 0 0 8px; font-weight: 700; }
+.quiz-item label { display: block; margin-bottom: 6px; color: #334155; }
+.quiz-btn { border: 0; border-radius: 8px; background: #0f766e; color: #ffffff; font-weight: 700; padding: 10px 14px; cursor: pointer; width: fit-content; transition: filter 180ms; }
+.quiz-btn:hover { filter: brightness(0.95); }
+.quiz-result { margin: 0; color: #0f172a; font-weight: 700; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 860px) { .span-8, .span-4, .checklist-wrap { grid-column: span 12; } .redflags { grid-template-columns: 1fr; } .title { font-size: 30px; } }
 </style>
-
+</head>
+<body>
 <div class="page">
-    <!-- Hero introduces the page purpose and anchors the updated visual style. -->
+    <!--hero introduces the page purpose and anchors the updated visual style-->
     <section class="hero">
         <h2 class="title">PhishProof | Security Awareness Hub</h2>
         <p class="subtitle">
@@ -342,9 +93,11 @@
     <!--shared navigation pattern used across templates for consistent movement through the app-->
     <nav class="top-nav">
         <a href="/">Home</a>
-        <a href="/employee">Dashboard</a>
         <a href="/admin">Admin</a>
+        <a href="/employee">Employee</a>
         <a href="/results">Results</a>
+        <a href="/create-account">Create Account</a>
+        <a href="/logout">Logout</a>
     </nav>
 
     <section class="grid">
@@ -493,3 +246,5 @@
         quizResult.textContent = 'Score: ' + score + '/2';
     });
 </script>
+</body>
+</html>

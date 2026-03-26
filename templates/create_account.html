@@ -1,170 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishProof | Create Account</title>
 <style>
-/* Shared auth theme aligned with the updated login and awareness pages. */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
-
 :root {
-    --bg: #f6fbff;
-    --ink: #0f172a;
-    --line: #d9e2ec;
-    --card: #ffffff;
-    --muted: #64748b;
+  --bg: #f8fafc;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --brand-dark: #0f766e;
+  --brand: #14b8a6;
+  --card: #ffffff;
+  --line: #e2e8f0;
 }
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-    color: var(--ink);
-    background:
-        radial-gradient(circle at 10% 10%, #dff8ff 0%, transparent 35%),
-        radial-gradient(circle at 90% 20%, #e8fff5 0%, transparent 32%),
-        linear-gradient(180deg, #eff8ff 0%, var(--bg) 38%, #ffffff 100%);
-    min-height: 100vh;
-}
-
-.page {
-    max-width: 560px;
-    margin: 30px auto;
-    padding: 0 20px 40px;
-}
-
-.hero {
-    border-radius: 18px;
-    padding: 22px 22px;
-    margin-bottom: 20px;
-    color: #ecfeff;
-    box-shadow: 0 12px 28px rgba(8, 51, 68, 0.24);
-    background: linear-gradient(125deg, #0f172a 0%, #0f766e 52%, #22c55e 100%);
-}
-
-.role-badge {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.18);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-}
-
-.title {
-    margin: 10px 0 6px;
-    font-size: 33px;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-}
-
-.subtitle {
-    margin: 0;
-    color: #d1fae5;
-    line-height: 1.5;
-}
-
-.top-nav {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 18px;
-    margin-bottom: 24px;
-    padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.86);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    backdrop-filter: blur(5px);
-}
-
-.top-nav a {
-    text-decoration: none;
-    color: #0f766e;
-    font-weight: 700;
-}
-
-.top-nav a:hover {
-    text-decoration: underline;
-}
-
-.card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 24px;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-}
-
-.field {
-    display: grid;
-    gap: 8px;
-    margin-bottom: 14px;
-}
-
-.field label {
-    font-weight: 700;
-    color: #111827;
-}
-
-.field input,
-.field select {
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 14px;
-    background: #ffffff;
-}
-
-.btn {
-    margin-top: 6px;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    background: #15803d;
-    color: #ffffff;
-    width: 100%;
-}
-
-.btn:hover {
-    filter: brightness(0.95);
-}
-
-.error {
-    margin: 0 0 12px;
-    padding: 10px;
-    border-radius: 8px;
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-}
-
-.success {
-    margin: 0 0 12px;
-    padding: 10px;
-    border-radius: 8px;
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-}
-
-.hint {
-    margin-top: 14px;
-    color: var(--muted);
-    font-size: 13px;
-    text-align: center;
-}
-
-.hint a {
-    color: #0f766e;
-    text-decoration: none;
-}
-
-.hint a:hover {
-    text-decoration: underline;
-}
+body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--ink); }
+.page { max-width: 560px; margin: 30px auto; padding: 0 20px 40px; }
+.hero { border-radius: 18px; padding: 22px; margin-bottom: 20px; color: #ecfeff; box-shadow: 0 12px 28px rgba(8, 51, 68, 0.24); background: linear-gradient(125deg, #0f172a 0%, #0f766e 52%, #22c55e 100%); }
+.role-badge { display: inline-block; padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); font-size: 12px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+.title { margin: 10px 0 6px; font-size: 33px; font-weight: 700; }
+.subtitle { margin: 0; color: #d1fae5; line-height: 1.5; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); }
+.top-nav { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 16px; }
+.top-nav a { text-decoration: none; color: #0f172a; font-weight: 600; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: #ffffff; }
+.top-nav a:hover { background: #f1f5f9; }
+.field { display: grid; gap: 8px; margin-bottom: 14px; }
+.field label { font-weight: 700; color: #111827; }
+.field input, .field select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 14px; background: #ffffff; transition: border-color 200ms; }
+.field input:focus, .field select:focus { outline: none; border-color: var(--brand); }
+.btn { margin-top: 6px; border: 1px solid transparent; border-radius: 8px; padding: 10px 16px; font-weight: 700; font-size: 14px; cursor: pointer; background: #15803d; color: #ffffff; width: 100%; transition: filter 180ms; }
+.btn:hover { filter: brightness(0.95); }
+.error { margin: 0 0 12px; padding: 10px; border-radius: 8px; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.success { margin: 0 0 12px; padding: 10px; border-radius: 8px; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.hint { margin-top: 14px; color: var(--muted); font-size: 13px; text-align: center; }
+.hint a { color: #0f766e; text-decoration: none; }
+.hint a:hover { text-decoration: underline; }
 </style>
+</head>
+<body>
 
 <div class="page">
 
@@ -183,12 +56,12 @@ body {
 <div class="card">
 
 {% if error %}
-<!-- Validation/creation errors from backend (role, password rules, duplicate email). -->
+<!--validation/creation errors from backend (role, password rules, duplicate email). -->
 <p class="error">{{ error }}</p>
 {% endif %}
 
 {% if success %}
-<!-- Success message shown after Firebase user + Firestore profile are created. -->
+<!--success message shown after Firebase user + Firestore profile are created. -->
 <p class="success">{{ success }}</p>
 {% endif %}
 
@@ -234,3 +107,5 @@ Already have an account? <a href="/login/employee">Log in here</a>
 
 </div>
 </div>
+</body>
+</html>
