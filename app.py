@@ -174,7 +174,6 @@ ROUTES = {
     "/campaign": "create_campaign.html",
     "/create_campaign": "create_campaign.html",
     "/dashboard": "dashboard.html",
-    "/results": "results.html",
     "/simulate": "simulate.html",
     "/simulation_link_form": "simulation_link_form.html",
 }
@@ -580,6 +579,26 @@ def login_employee():
 def admin_dashboard():
     message = request.args.get("message")
     return render_template("admin.html", **_build_admin_context(message=message))
+
+
+@app.route("/results", methods=["GET"])
+def results_all():
+    # admin results page showing all simulation results and action summary
+    all_results = fetch_all_simulation_results()
+
+    summary = {"Clicked Link": 0, "Reported": 0, "Ignored": 0}
+    for r in all_results:
+        action = (r.get("action") or "").strip()
+        if action in summary:
+            summary[action] += 1
+
+    campaigns_raw = fetch_all_campaigns(descending=True)
+    campaigns = [
+        SimpleNamespace(id=c.get("campaign_id"), scenario=c.get("scenario", "Unknown"))
+        for c in campaigns_raw
+    ]
+
+    return render_template("results.html", data=all_results, campaigns=campaigns, summary=summary)
 
 
 @app.route("/create", methods=["POST"])
