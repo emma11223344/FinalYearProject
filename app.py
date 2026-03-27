@@ -603,8 +603,14 @@ def results_all():
 
 @app.route("/create", methods=["POST"])
 def create_campaign_post():
-    # admin create-campaign form submit handler
-    scenario = (request.form.get("scenario") or "").strip()
+    # admin create-campaign form submit handler - supports both preset and custom scenarios
+    campaign_type = (request.form.get("campaign_type") or "preset").strip()
+    
+    if campaign_type == "custom":
+        scenario = (request.form.get("custom_scenario") or "").strip()
+    else:
+        scenario = (request.form.get("scenario") or "").strip()
+    
     if scenario:
         try:
             create_campaign_record(scenario)

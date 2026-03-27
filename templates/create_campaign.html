@@ -18,12 +18,90 @@ body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
 .page { max-width: 900px; margin: 32px auto; padding: 0 20px 32px; }
 .title { margin: 0 0 16px; font-size: 30px; text-align: center; color: #0f172a; font-weight: 700; }
 .card { background: #ffffff; border: 1px solid #d9e2ec; border-radius: 12px; padding: 24px; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08); }
-.field { display: grid; gap: 8px; max-width: 360px; }
+.field { display: grid; gap: 8px; max-width: 360px; margin-bottom: 16px; }
 .field label { font-weight: 700; color: #111827; }
-.field select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 14px; background: #ffffff; transition: border-color 200ms; }
-.field select:focus { outline: none; border-color: var(--brand); }
+.field select, .field input[type="text"] { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 14px; background: #ffffff; transition: border-color 200ms; }
+.field select:focus, .field input[type="text"]:focus { outline: none; border-color: var(--brand); }
+.radio-group { display: flex; gap: 24px; margin-bottom: 16px; }
+.radio-item { display: flex; align-items: center; gap: 8px; }
+.radio-item input[type="radio"] { cursor: pointer; width: 18px; height: 18px; }
+.radio-item label { margin: 0; font-weight: 600; cursor: pointer; }
 .btn { margin-top: 16px; border: 1px solid transparent; border-radius: 8px; padding: 10px 16px; font-weight: 700; font-size: 14px; cursor: pointer; background: #1d4ed8; color: #ffffff; transition: filter 180ms; }
 .btn:hover { filter: brightness(0.95); }
+.hidden { display: none; }
 </style>
 </head>
 <body>
+  <div class="page">
+    <h1 class="title">Create Phishing Simulation Campaign</h1>
+    <div class="card">
+      <form method="POST" action="/create">
+        <div class="radio-group">
+          <div class="radio-item">
+            <input type="radio" id="preset" name="campaign_type" value="preset" checked>
+            <label for="preset">Use Preset Scenario</label>
+          </div>
+          <div class="radio-item">
+            <input type="radio" id="custom" name="campaign_type" value="custom">
+            <label for="custom">Create Custom Campaign</label>
+          </div>
+        </div>
+
+        <div id="preset-section" class="field">
+          <label for="scenario">Select Scenario</label>
+          <select id="scenario" name="scenario" required>
+            <option value="">-- Choose a scenario --</option>
+            <option value="Password Reset">Password Reset</option>
+            <option value="Invoice Scam">Invoice Scam</option>
+            <option value="Delivery Notice">Delivery Notice</option>
+            <option value="MFA Expiration">MFA Expiration</option>
+            <option value="Shared Document">Shared Document</option>
+            <option value="HR Policy Update">HR Policy Update</option>
+            <option value="Team Lunch Invite">Team Lunch Invite</option>
+            <option value="IT Maintenance Notice">IT Maintenance Notice</option>
+            <option value="Quarterly Town Hall">Quarterly Town Hall</option>
+            <option value="Training Reminder">Training Reminder</option>
+            <option value="Security Patch Advisory">Security Patch Advisory</option>
+            <option value="Facilities Access Notice">Facilities Access Notice</option>
+            <option value="Project Kickoff Invite">Project Kickoff Invite</option>
+            <option value="Payroll Schedule Update">Payroll Schedule Update</option>
+          </select>
+        </div>
+
+        <div id="custom-section" class="field hidden">
+          <label for="custom_name">Campaign Name</label>
+          <input type="text" id="custom_name" name="custom_scenario" placeholder="Enter custom campaign name..." maxlength="100">
+        </div>
+
+        <button type="submit" class="btn">Create Campaign</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const presetRadio = document.getElementById('preset');
+    const customRadio = document.getElementById('custom');
+    const presetSection = document.getElementById('preset-section');
+    const customSection = document.getElementById('custom-section');
+    const scenarioSelect = document.getElementById('scenario');
+    const customInput = document.getElementById('custom_name');
+
+    function updateVisibility() {
+      if (customRadio.checked) {
+        presetSection.classList.add('hidden');
+        customSection.classList.remove('hidden');
+        scenarioSelect.removeAttribute('required');
+        customInput.setAttribute('required', 'required');
+      } else {
+        presetSection.classList.remove('hidden');
+        customSection.classList.add('hidden');
+        scenarioSelect.setAttribute('required', 'required');
+        customInput.removeAttribute('required');
+      }
+    }
+
+    presetRadio.addEventListener('change', updateVisibility);
+    customRadio.addEventListener('change', updateVisibility);
+  </script>
+</body>
+</html>
