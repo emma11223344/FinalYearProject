@@ -142,12 +142,13 @@ def get_next_campaign_id():
     return campaigns[0]["campaign_id"] + 1 if campaigns else 1
 
 
-def create_campaign_record(scenario):
+def create_campaign_record(scenario, campaign_content=None):
     # create a new campaign record in Firestore from the selected scenario
     campaign_id = get_next_campaign_id()
     payload = {
         "campaign_id": campaign_id,
         "scenario": scenario,
+        "campaign_content": campaign_content or "",
         "created_at": firestore.SERVER_TIMESTAMP,
     }
     firestore_db.collection("campaigns").add(payload)
@@ -603,17 +604,13 @@ def results_all():
 
 @app.route("/create", methods=["POST"])
 def create_campaign_post():
-    # admin create-campaign form submit handler - supports both preset and custom scenarios
-    campaign_type = (request.form.get("campaign_type") or "preset").strip()
-    
-    if campaign_type == "custom":
-        scenario = (request.form.get("custom_scenario") or "").strip()
-    else:
-        scenario = (request.form.get("scenario") or "").strip()
+    # admin create-campaign form submit handler for custom campaigns
+    scenario = (request.form.get("custom_scenario") or request.form.get("scenario") or "").strip()
+    campaign_content = (request.form.get("custom_campaign_content") or "").strip()
     
     if scenario:
-        try:
-            create_campaign_record(scenario)
+        try: # create the campaign record and handle any database errors gracefully
+            create_campaign_record(scenario, campaign_content=campaign_content)
         except Exception:
             return redirect(url_for("admin_dashboard", message="campaign-not-found"))
 
@@ -644,7 +641,7 @@ def simulate_campaign(campaign_id):
     )
 
 
-@app.route("/simulate/<campaign_ref>", methods=["GET"])
+@app.route("/simulate/<campaign_ref>", methods=["GET"]) # compatibility route to handle non-integer campaign references
 @app.route("/simulate/<campaign_ref>/", methods=["GET"])
 def simulate_campaign_compat(campaign_ref):
     # compatibility route to avoid 404 when campaign id arrives as text or with trailing slash
@@ -672,7 +669,7 @@ def simulate_campaign_link(campaign_id):
         verification_value = (request.form.get("verification_value") or "").strip()
 
         if not full_name or not account_identifier or not verification_value:
-            return render_template(
+            return render_template( # if any form field is missing, re-render the form with an error message
                 "simulation_link_form.html",
                 campaign=SimpleNamespace(id=campaign_id, scenario=campaign.get("scenario", "Unknown")),
                 simulation=simulation,
@@ -781,14 +778,49 @@ def campaign_detail(campaign_id):
     if not campaign:
         return redirect(url_for("results"))
 
+
+    
     data = fetch_results_by_campaign(campaign_id)
-    preview = _build_simulation_payload(campaign)
+    total_actions = len(data) # total number of employee interactions for this campaign
+    unique_employees = len({r.get("employee_email") for r in data if r.get("employee_email")})
+    summary = {
+        "Clicked Link": sum(1 for r in data if (r.get("action") or "").strip() == "Clicked Link"),
+        "Reported": sum(1 for r in data if (r.get("action") or "").strip() == "Reported"),
+        "Ignored": sum(1 for r in data if (r.get("action") or "").strip() == "Ignored"),
+    }
+    campaign_content = (campaign.get("campaign_content") or "").strip()
+    if campaign_content:
+        preview = {
+            "sender": "Custom Campaign",
+            "reply_to": "-",
+            "recipient": "-",
+            "received_time": "-",
+            "subject": campaign.get("scenario", "Unknown"),
+            "body": [line for line in campaign_content.splitlines() if line.strip()],
+            "display_link": "",
+            "closing": "",
+            "signature": "",
+        }
+    else:
+        preview = _build_simulation_payload(campaign)
     return render_template(
         "campaign_detail.html",
         campaign=SimpleNamespace(id=campaign_id, scenario=campaign.get("scenario", "Unknown")),
         data=data,
+        total_actions=total_actions,
+        unique_employees=unique_employees,
+        summary=summary,
         campaign_preview=preview,
     )
+
+
+@app.route("/admin/campaign/<int:campaign_id>/delete", methods=["POST"])
+def delete_campaign(campaign_id):
+    # delete a campaign and its related simulation results, then return to admin dashboard
+    delete_results_by_campaign(campaign_id)
+    deleted = delete_campaign_record(campaign_id)
+    message = "campaign-deleted" if deleted else "campaign-not-found"
+    return redirect(url_for("admin_dashboard", message=message))
 
 
 for path, template in ROUTES.items():

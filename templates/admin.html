@@ -34,7 +34,7 @@ body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
 .field label { font-weight: 700; color: #111827; }
 .field select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; font-size: 14px; background: #ffffff; transition: border-color 200ms; }
 .field select:focus { outline: none; border-color: var(--brand); }
-.btn { margin-top: 16px; border: 1px solid transparent; border-radius: 8px; padding: 10px 16px; font-weight: 700; font-size: 14px; cursor: pointer; background: var(--brand-dark); color: #ffffff; transition: filter 180ms; }
+.btn { margin-top: 16px; border: 1px solid transparent; border-radius: 8px; padding: 10px 16px; font-weight: 700; font-size: 14px; cursor: pointer; background: var(--brand); color: #f7f8fb; transition: filter 180ms; }
 .btn:hover { filter: brightness(0.95); }
 .spaced-card { margin-bottom: 18px; }
 table { width: 100%; border-collapse: collapse; margin-top: 8px; }
@@ -62,17 +62,23 @@ th { background: #eff6ff; color: #0f172a; }
     <nav class="top-nav"> 
         <a href="/">Home</a>
         <a href="/results">View Results</a>
-        <a href="/employee">Employee</a>
         <a href="/awareness">Awareness</a>
         <a href="/logout">Logout</a>
     </nav>
 <!--section for creating a new phishing simulation campaign, which includes a form with a dropdown to select the scenario and a submit button to create the campaign-->
     <div class="card spaced-card">
-        <h3 class="section-title">Create Campaign</h3>
-        {% if message == "campaign-deleted" %}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 class="section-title" style="margin: 0;">Create Campaign</h3>
+            <a href="/campaign" style="color: var(--brand-dark); text-decoration: none; font-weight: 600; font-size: 14px;">+ Custom Campaign</a>
+        </div>
+        {% if message == "campaign-deleted" %} <!--display a success message if a campaign was deleted successfully, or a warning message if the campaign to delete was not found-->
         <p class="message success">Campaign deleted successfully.</p>
         {% elif message == "campaign-not-found" %}
         <p class="message warn">Campaign not found.</p>
+        {% elif message == "creation-success" %}
+        <p class="message success">Campaign published successfully.</p>
+        {% elif message == "creation-failed" %}
+        <p class="message warn">Campaign could not be published. Please try again.</p>
         {% endif %}
        
         <!--form to create a new phishing campaign, submits the selected scenario to the server-->
@@ -112,7 +118,7 @@ th { background: #eff6ff; color: #0f172a; }
         <ul class="list">
         {% for c in campaigns %}
             <li class="campaign-row">
-                <a class="campaign-link" href="/admin/campaign/{{ c.id }}">{{ c.scenario }}</a>
+                <a class="campaign-link" href="/campaign/{{ c.id }}">{{ c.scenario }}</a>
                 <span class="meta">
                     {{ campaign_stats[c.id].total }} actions,
                     {{ campaign_stats[c.id].employees }} employees,

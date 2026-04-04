@@ -55,7 +55,7 @@ body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
 <section class="hero">
 <span class="role-badge">{{ role }} Portal</span>
 <h2 class="title">PhishProof | {{ role }} Login</h2>
-<p class="subtitle">Secure access to the phishing training platform</p>
+<p class="subtitle">Secure access to PhishProof</p>
 </section>
 
 <!--top navigation bar with links to home, admin login, employee login, and create account pages-->
@@ -75,7 +75,7 @@ body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
 
 <form method="post"><!--form for user login, submits email and password to the server for authentication-->
 
-<div class="field"> <!--styling for form fields, including labels and input elements, with focus states for improved accessibility and user experience-->
+<div class="field"> <!--email input field for user login-->
 <label for="email">Email</label>
 <input type="email" id="email" name="email" required>
 </div>
@@ -95,13 +95,22 @@ Login as {{ role }}
 
 </form>
 
-<p class="hint">
-Password reset actions are available only inside phishing simulations.
-</p>
+
 
 <p class="hint">
-No account yet? <a href="/create-account">Create one here</a>
+No account yet?
+{% if role == 'admin' %} <!--link to create account page with role pre-selected based on the current login page, to streamline the account creation process for users who may have navigated to the login page before creating an account-->
+<a href="/create-account?role=admin">Create an admin account here</a>
+{% else %}
+<a href="/create-account">Create one here</a>
+{% endif %}
 </p>
+
+{% if role == 'admin' %} <!--message shown only when the user is on the admin login page indicating that admin account creation requires code-->
+<p class="hint">
+Admin account creation requires the Admin Approval Code.
+</p>
+{% endif %}
 
 <p class="hint">
 Always check the website URL before entering your credentials.

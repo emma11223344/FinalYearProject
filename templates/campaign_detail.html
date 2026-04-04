@@ -32,6 +32,13 @@ body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
 .preview-meta { color: #0f172a; margin: 0; }
 .preview-link { color: #1d4ed8; text-decoration: none; font-weight: 600; word-break: break-all; }
 .preview-link:hover { text-decoration: underline; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal-overlay.hidden { display: none; }
+.modal-card { width: 100%; max-width: 520px; background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.22); padding: 18px; }
+.modal-title { margin: 0 0 10px; font-size: 20px; color: #0f172a; }
+.modal-actions { display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.warning-note { margin: 0; color: #7c2d12; background: #fff7ed; border: 1px solid #fdba74; border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.btn-neutral { background: #ffffff; color: #374151; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 12px; font-weight: 700; font-size: 13px; cursor: pointer; }
 .flags { margin: 12px 0 0; padding-left: 20px; color: #b45309; }
 table { width: 100%; border-collapse: collapse; margin-top: 8px; }
 th, td { border: 1px solid var(--line); padding: 10px 12px; text-align: left; }
@@ -101,12 +108,18 @@ th { background: #eff6ff; color: #0f172a; }
             <p>{{ paragraph }}</p>
             {% endfor %}
 
+            {% if campaign_preview.display_link %}
             <p>
                 <strong>Link shown:</strong>
-                <a class="preview-link" href="{{ campaign_preview.display_link }}" target="_blank" rel="noopener noreferrer">{{ campaign_preview.display_link }}</a>
+                <a id="admin-preview-link" class="preview-link" href="#" role="button" aria-label="Blocked simulation link">{{ campaign_preview.display_link }}</a>
             </p>
+            {% endif %}
+            {% if campaign_preview.closing %}
             <p>{{ campaign_preview.closing }}</p>
+            {% endif %}
+            {% if campaign_preview.signature %}
             <p>{{ campaign_preview.signature }}</p>
+            {% endif %}
         </article>
 <!--section to display the results of the campaign, including a table of employee actions taken during the simulation, which allows admins to review how employees interacted with the phishing simulation and identify areas for improvement in training focus-->
         <article class="card span-12">
@@ -126,6 +139,34 @@ th { background: #eff6ff; color: #0f172a; }
             {% endif %}
         </article>
     </section>
+
+    <div id="admin-link-safety-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="admin-link-safety-title">
+        <div class="modal-card">
+            <h3 id="admin-link-safety-title" class="modal-title">Safety Check</h3>
+            <p class="warning-note">This preview link is intentionally blocked. In real life, always verify sender details and URL domains before clicking suspicious links.</p>
+            <div class="modal-actions">
+                <button type="button" id="admin-link-cancel-btn" class="btn-neutral">Got It</button>
+            </div>
+        </div>
+    </div>
 </div>
+<script> //JavaScript to handle the admin preview link safety modal
+const adminPreviewLink = document.getElementById("admin-preview-link");
+const adminLinkSafetyModal = document.getElementById("admin-link-safety-modal");
+const adminLinkCancelBtn = document.getElementById("admin-link-cancel-btn");
+
+if (adminPreviewLink && adminLinkSafetyModal) {
+    adminPreviewLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        adminLinkSafetyModal.classList.remove("hidden");
+    });
+}
+
+if (adminLinkCancelBtn && adminLinkSafetyModal) {
+    adminLinkCancelBtn.addEventListener("click", () => {
+        adminLinkSafetyModal.classList.add("hidden");
+    });
+}
+</script>
 </body>
 </html>
