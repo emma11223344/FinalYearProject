@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from types import SimpleNamespace
 
 from flask import Flask, redirect, render_template, request, session, url_for
@@ -12,6 +13,27 @@ firestore_db = firestore.client()  # use the Firestore client initialized in fir
 
 def _normalize_email(email):
     return (email or "").strip().lower()
+
+
+def _get_env_value(key, default=""):
+    # Prefer real environment variables; fallback to .env for local runs without python-dotenv.
+    value = os.getenv(key)
+    if value is not None and str(value).strip() != "":
+        return value
+
+    env_path = Path(__file__).resolve().parent / ".env"
+    if not env_path.exists():
+        return default
+
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        env_key, env_value = stripped.split("=", 1)
+        if env_key.strip() == key:
+            return env_value.strip()
+
+    return default
 
 
 def save_simulation_result(
@@ -738,14 +760,45 @@ def report_action():
 @app.route("/create-account", methods=["GET", "POST"])
 @app.route("/create_account", methods=["GET", "POST"])
 def create_account_alias():
-    # account creation route supports both kebab-case and underscore URLs
+    # account creation route supports 
     if request.method == "GET":
-        return render_template("create_account.html", error=None, success=None, selected_role="employee")
+        requested_role = (request.args.get("role") or "employee").strip().lower()
+        selected_role = requested_role if requested_role in ("admin", "employee") else "employee"
+        return render_template("create_account.html", error=None, success=None, selected_role=selected_role)
 
     email = _normalize_email(request.form.get("email", ""))
     password = request.form.get("password", "")
     confirm_password = request.form.get("confirm_password", "")
     selected_role = (request.form.get("role") or "employee").strip().lower()
+
+#admin approval code is required to create admin accounts, and the code is validated against the ADMIN_APPROVAL_CODE environment variable
+    if selected_role == "admin":
+        admin_code_entered = (request.form.get("admin_approval_code") or "").strip()
+        expected_admin_code = (_get_env_value("ADMIN_APPROVAL_CODE") or "").strip()
+
+        if not admin_code_entered:
+            return render_template(
+                "create_account.html",
+                error="Admin Approval Code is required for admin account creation.",
+                success=None,
+                selected_role=selected_role,
+            )
+
+        if not expected_admin_code:
+            return render_template(
+                "create_account.html",
+                error="Admin account creation is unavailable: ADMIN_APPROVAL_CODE is not configured.",
+                success=None,
+                selected_role=selected_role,
+            )
+
+        if admin_code_entered != expected_admin_code:
+            return render_template(
+                "create_account.html",
+                error="Invalid Admin Approval Code.",
+                success=None,
+                selected_role=selected_role,
+            )
 
     role, error = register_user(email, password, confirm_password, selected_role)
     if error:
@@ -760,7 +813,7 @@ def create_account_alias():
         "create_account.html",
         error=None,
         success=f"{role.title()} account created successfully.",
-        selected_role="employee",
+        selected_role=selected_role,
     )
 
 
