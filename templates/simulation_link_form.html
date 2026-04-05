@@ -8,21 +8,15 @@
 :root {
   --bg: #f8fafc;
   --ink: #0f172a;
-  --muted: #64748b;
-  --brand-dark: #0f766e;
-  --brand: #14b8a6;
+    --accent: #0f766e;
   --card: #ffffff;
   --line: #e2e8f0;
+    --danger: #b91c1c;
 }
-:root { --bg: #f8fafc; --accent: #0f766e; --danger: #b91c1c; }
 body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--ink); }
 .page { max-width: 620px; margin: 36px auto; padding: 0 18px 28px; }
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08); }
 .title { margin: 0 0 6px; font-size: 28px; font-weight: 700; }
-.subtitle { margin: 0 0 16px; color: #475569; }
-.badge { display: inline-block; margin-bottom: 14px; border-radius: 999px; padding: 5px 10px; font-size: 12px; font-weight: 700; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; }
-.badge.phishing { border-color: #fecaca; background: #fff1f2; color: #991b1b; }
-.meta { margin: 0 0 16px; font-size: 14px; color: #334155; }
 .timer-pill { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 14px; padding: 6px 10px; border-radius: 999px; border: 1px solid #fca5a5; background: #fff1f2; color: #9f1239; font-size: 13px; font-weight: 700; }
 .field { margin-bottom: 12px; }
 .field label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; }
@@ -38,20 +32,11 @@ body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
 </style>
 </head>
 <body>
-<!-- Form for submitting simulation link details -->
 <div class="page">
     <div class="panel">
         <h2 class="title">PhishProof | {{ simulation.subject }}</h2>
-        <p class="subtitle">{{ simulation.sender }}</p>
-
-        <span class="badge {% if is_phishing %}phishing{% endif %}">
-            {% if is_phishing %}External verification portal{% else %}Internal company portal{% endif %}
-        </span>
-
-        <p class="meta">
-            Campaign: <strong>{{ campaign.scenario }}</strong><br>
-            Destination: <strong>{{ simulation.link }}</strong>
-        </p>
+        <p>{{ simulation.sender }}</p>
+        <p>Campaign: <strong>{{ campaign.scenario }}</strong></p>
 
         <p class="timer-pill">Time left: <span id="countdown" data-seconds="{{ timer_seconds|int }}">01:00</span></p>
 
@@ -65,7 +50,6 @@ body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
                 <label for="full_name">Full name</label>
                 <input id="full_name" name="full_name" type="text" placeholder="Enter your full name">
             </div>
-            <!--depending on whether the simulation is phishing or not, the form fields and placeholders adjust to reflect the context. For phishing simulations, the form prompts for work email and password/one-time code, mimicking a typical phishing attempt-->
             <div class="field">
                 <label for="account_identifier">{% if is_phishing %}Work email{% else %}Employee ID{% endif %}</label>
                 <input id="account_identifier" name="account_identifier" type="text" placeholder="{% if is_phishing %}name@company.com{% else %}EMP-1427{% endif %}">
@@ -75,7 +59,6 @@ body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
                 <label for="verification_value">{% if is_phishing %}Password or one-time code{% else %}RSVP code or confirmation token{% endif %}</label>
                 <input id="verification_value" name="verification_value" type="text" placeholder="{% if is_phishing %}Enter requested credential{% else %}Enter confirmation token{% endif %}">
             </div>
-            <!--the form submits the entered details to the server for validation, which checks the inputs against expected values for the simulation and determines whether the employee's action indicates they fell for the phishing attempt or correctly identified it. The server then responds with feedback based on the validation results.-->
             <div class="actions">
                 <button class="btn btn-submit" type="submit">Submit Details</button>
                 <a class="btn btn-back" href="/simulate/{{ campaign.id }}?email={{ simulation.recipient|urlencode }}">Back to Email</a>
