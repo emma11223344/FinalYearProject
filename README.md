@@ -15,11 +15,10 @@ https://phishproof-z4u4.onrender.com
 
 OR
 
-```bash
-git clone <repo>
+git clone <repo-url>
 cd phishproof
 python -m venv venv
-source venv/bin/activate      
+venv\Scripts\activate
 pip install -r requirements.txt
 
 
